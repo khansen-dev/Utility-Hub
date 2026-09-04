@@ -1,0 +1,2075 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>UCD Pilot</title>
+<style>
+  :root{
+    --bg:#EEF1F2; --panel:#FFFFFF; --ink:#1B2733; --ink-soft:#5C6B77;
+    --line:#D8DEE2; --accent:#C97A2B; --accent-dark:#7A4A17; --accent-bg:#F7E9D8;
+    --good:#3E7C59; --good-bg:#E6F0EA; --danger:#B3432B; --danger-bg:#F7E5DF;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;}
+  header.topbar{background:var(--panel);border-bottom:1px solid var(--line);padding:14px 16px;position:sticky;top:0;z-index:10;}
+  .brand{font-size:18px;font-weight:600;display:flex;align-items:baseline;gap:6px;}
+  .brand span{color:var(--accent-dark);font-weight:600;}
+  .brand small{font-weight:400;color:var(--ink-soft);font-size:12px;margin-left:4px;}
+  nav.tabs{display:flex;gap:4px;margin-top:12px;border-bottom:1px solid var(--line);}
+  nav.tabs button{background:none;border:none;padding:9px 10px;font-size:13px;font-weight:600;color:var(--ink-soft);cursor:pointer;border-bottom:2px solid transparent;font-family:var(--sans);}
+  nav.tabs button.active{color:var(--accent-dark);border-bottom-color:var(--accent);}
+  .langrow{display:flex;justify-content:flex-end;margin-top:8px;}
+  #langToggle{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--ink-soft);cursor:pointer;}
+  main{padding:14px 12px 60px;max-width:820px;margin:0 auto;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;}
+  .card h3{margin:0 0 10px;font-size:14px;font-weight:600;}
+  .row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .muted{color:var(--ink-soft);font-size:12.5px;}
+  .tagno{font-family:var(--mono);font-weight:600;color:var(--accent-dark);background:var(--accent-bg);padding:2px 7px;border-radius:5px;font-size:12.5px;}
+  button.primary{background:var(--accent);color:#fff;border:none;border-radius:7px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);}
+  button.secondary{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:8px 12px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--sans);}
+  button.ghost{background:none;border:none;color:var(--ink-soft);font-size:12px;cursor:pointer;text-decoration:underline;padding:2px 0;font-family:var(--sans);}
+  button.danger-btn{background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;padding:2px 0;font-family:var(--sans);}
+  input,select,textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:8px 9px;font-size:13px;font-family:var(--sans);background:#fff;color:var(--ink);}
+  input[type=number]{font-family:var(--mono);}
+  label{display:block;font-size:11.5px;font-weight:600;color:var(--ink-soft);margin:8px 0 3px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+  .formbox{border:1px dashed var(--line);border-radius:8px;padding:12px;margin-top:10px;background:#FAFBFB;}
+  .formbtns{display:flex;gap:8px;margin-top:12px;}
+  .line-item{border-top:1px solid var(--line);padding:8px 0;font-size:12.5px;}
+  .line-item .lt{font-weight:600;}
+  .pill{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:20px;background:var(--good-bg);color:var(--good);}
+  .pill.override{background:var(--accent-bg);color:var(--accent-dark);}
+  table.doc{border-collapse:collapse;width:100%;font-size:12px;}
+  table.doc th,table.doc td{border:1px solid var(--line);padding:6px 7px;text-align:left;white-space:normal;word-wrap:break-word;overflow-wrap:break-word;vertical-align:top;}
+  table.doc th{background:var(--bg);font-weight:600;font-size:11px;text-transform:none;}
+  .doc-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .empty{text-align:center;padding:26px 10px;color:var(--ink-soft);}
+  .chk-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:13px;}
+  .chk-row input{width:auto;}
+  select#docProject{margin-bottom:10px;}
+  .dropzone{border:2px dashed var(--line);border-radius:8px;padding:14px;text-align:center;cursor:pointer;color:var(--ink-soft);font-size:12.5px;margin-bottom:10px;transition:background .15s,border-color .15s;}
+  .dropzone.dragover{border-color:var(--accent);background:var(--accent-bg);color:var(--accent-dark);}
+  .dropzone input[type=file]{display:none;}
+  .tree-node{border-left:3px solid var(--line);padding:6px 0 6px 10px;margin-top:4px;transition:background .1s,border-color .1s;}
+  .tree-node.drop-target{background:var(--accent-bg);border-left-color:var(--accent);}
+  .tree-node.dragging{opacity:.4;}
+  .tree-root-drop{border:2px dashed var(--line);border-radius:8px;padding:8px;text-align:center;color:var(--ink-soft);font-size:11.5px;margin-bottom:6px;transition:background .1s,border-color .1s;}
+  .tree-root-drop.drop-target{background:var(--accent-bg);border-color:var(--accent);color:var(--accent-dark);}
+  .drag-handle{cursor:grab;touch-action:none;color:var(--ink-soft);font-size:15px;padding:0 8px 0 0;user-select:none;}
+  .tree-level-badge{display:inline-block;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-soft);background:var(--bg);border-radius:4px;padding:1px 5px;margin-right:6px;vertical-align:middle;}
+  .equip-header{background:var(--bg);border-radius:8px;padding:10px 12px;border:1px solid var(--line);}
+  .dochead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;border-bottom:2px solid var(--ink);padding-bottom:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .dochead-company{font-weight:600;font-size:15px;}
+  table.docmeta{border-collapse:collapse;font-size:11px;width:auto;}
+  table.docmeta td{border:1px solid var(--line);padding:3px 8px;}
+  table.docmeta td.k{color:var(--ink-soft);font-weight:600;background:var(--bg);}
+  .doctitle{font-size:17px;font-weight:600;margin:0 0 2px;}
+  .docsub{color:var(--ink-soft);font-size:12.5px;margin-bottom:12px;}
+  .docfoot{margin-top:14px;padding-top:8px;border-top:1px solid var(--line);color:var(--ink-soft);font-size:11px;}
+  .sys-fields{margin-top:8px;}
+  .flexend{display:flex;justify-content:flex-end;gap:8px;margin-top:10px;}
+  @media(max-width:420px){.grid3{grid-template-columns:1fr 1fr;} .grid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div id="loginGate" style="display:none;position:fixed;inset:0;background:#ffffff;z-index:100;align-items:center;justify-content:center;padding:20px">
+  <div style="max-width:320px;width:100%">
+    <div style="font-size:20px;font-weight:700;margin-bottom:4px">UCD <span style="color:#7A4A17">Pilot</span></div>
+    <div class="muted" id="loginSubtitle" style="margin-bottom:16px"></div>
+    <label id="loginEmailLabel"></label><input type="email" id="loginEmail" autocomplete="username">
+    <label id="loginPasswordLabel"></label><input type="password" id="loginPassword" autocomplete="current-password">
+    <div id="loginError" style="color:#B3432B;font-size:12px;margin-top:6px"></div>
+    <button class="primary" id="loginBtn" style="width:100%;margin-top:12px"></button>
+  </div>
+</div>
+
+<div id="appRoot">
+<header class="topbar">
+  <div class="brand">UCD <span>Pilot</span><small id="taglineText"></small></div>
+  <nav class="tabs">
+    <button data-tab="library" class="active" id="tabBtnLibrary"></button>
+    <button data-tab="projects" id="tabBtnProjects"></button>
+    <button data-tab="document" id="tabBtnDocument"></button>
+  </nav>
+  <div class="langrow"><button id="btnSaveData" class="secondary" style="margin-right:6px">SAVE</button><button id="btnOpenData" class="secondary" style="margin-right:6px">OPEN</button><input type="file" id="fileOpenData" accept=".json" style="display:none">
+  <button id="btnCloudSave" class="secondary" style="margin-right:6px;display:none">☁ SAVE</button><button id="btnCloudLoad" class="secondary" style="margin-right:6px;display:none">☁ LOAD</button><button id="btnLogout" class="secondary" style="margin-right:6px;display:none">⎋</button>
+  <button id="langToggle">EN</button></div>
+</header>
+
+<main>
+  <section id="tab-library" class="panel active"></section>
+  <section id="tab-projects" class="panel"></section>
+  <section id="tab-document" class="panel"></section>
+</main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+
+var uid=function(){return Math.random().toString(36).slice(2,10);};
+
+var T={
+  no:{
+    tagline:"forbruksdata-generator", tabLibrary:"Bibliotek", tabProjects:"Prosjekter", tabDocument:"Dokument",
+    newTag:"Ny tag", tagNo:"Tag-nummer", tagName:"Utstyrsnavn", supplier:"Leverandør", spec:"Spesifikasjon / databladref.",
+    tagNotes:"Notater", save:"Lagre", cancel:"Avbryt", edit:"Rediger", del:"Slett",
+    consumptionLines:"Forbrukslinjer", addLine:"Legg til forbrukslinje", noLines:"Ingen forbrukslinjer ennå.",
+    type:"Type forbruk", contInt:"Kontinuerlig/intermitterende", cont:"Kontinuerlig", intm:"Intermitterende",
+    min:"Min", normal:"Normal", max:"Maks", unit:"Enhet", mode:"Driftsmodus",
+    modeNormal:"Normal", modeCritical:"Kritisk", modeStabilized:"Stabilisert", modeEmergency:"Nød", modeNA:"–",
+    quality:"Kvalitet ved forbrukspunkt", storageSec:"Lagring (valgfritt)", storageTemp:"Lagringstemp. °C",
+    acdc:"AC/DC", ac:"AC", dc:"DC", phases:"Antall faser", onePhase:"1-fas", threePhase:"3-fas",
+    voltage:"Nominell spenning (V)", freq:"Frekvens (Hz)", powerFactor:"Effektfaktor (cosφ, valgfritt)",
+    amountLabelGeneric:"Verdier – min/normal/maks", amountLabelElec:"Strøm – min/normal/maks (A)",
+    presetLabel:"Hurtigvalg komponenttype (valgfritt)", presetNone:"— Velg komponenttype —",
+    presetOtherValues:"Andre vanlige verdier for denne typen:",
+    storageHumidity:"Fuktighet %", storagePressure:"Maks trykk (barg)", storageCapacity:"Lagringskapasitet m³",
+    storageLocation:"Lagringssted", lineNotes:"Notater",
+    emptyLibrary:"Ingen tags i biblioteket ennå. Legg til den første.",
+    newProject:"Nytt prosjekt", projectName:"Prosjektnavn", customer:"Kunde / sluttbruker",
+    emptyProjects:"Ingen prosjekter ennå.", systemLevel:"Systemnivå (valgfritt)",
+    sysCapacity:"Total systemkapasitet", sysMaxLoad:"Maks samtidig forbrukslast", sysChar:"Karakteristikk før distribusjon",
+    assignTags:"Tags i prosjektet", noTagsAssigned:"Ingen tags lagt til ennå.", addTagsFromLibrary:"Legg til tags fra biblioteket",
+    useLibVal:"Bruk biblioteksverdi", overrideVal:"Overstyrt for dette prosjektet", overrideBtn:"Overstyr",
+    resetOverride:"Tilbakestill til biblioteksverdi",
+    selectProject:"Velg prosjekt", noProjectSelected:"Velg et prosjekt for å generere dokumentet.",
+    genTitle:"Utility Consumption Data", exportPdf:"Eksporter PDF", exportExcel:"Eksporter Excel", exportWord:"Eksporter Word",
+    colTag:"Tag", colType:"Type", colContInt:"Kont./Interm.", colMin:"Min", colNormal:"Normal", colMax:"Maks",
+    colUnit:"Enhet", colMode:"Modus", colQuality:"Kvalitet", colNotes:"Notater", colConsumption:"Forbruk (min/normal/maks)",
+    docInfoTitle:"Dokumentinformasjon", companyName:"Selskap", docNo:"Dok.nr.", revision:"Rev.", docDate:"Dato", preparedBy:"Utarbeidet av",
+    generatedBy:"Generert med UCD Pilot",
+    btnSaveData:"Lagre", btnOpenData:"Åpne", confirmOpenData:"Dette erstatter alt du har i appen nå med innholdet i filen. Fortsette?",
+    openDataError:"Kunne ikke lese filen – er det en gyldig UCD Pilot-datafil?", openDataSuccess:"Data lastet inn.",
+    regTitle:"Registre", regAssumptions:"Forutsetninger", regOpenItems:"Åpne punkter", regReferences:"Referanser", regRevisions:"Revisjonshistorikk",
+    regDescription:"Beskrivelse", regDiscipline:"Ansvarlig disiplin", regStatus:"Status", regStatusOpen:"Åpen", regStatusClosed:"Lukket",
+    regCategory:"Kategori", regNotes:"Notater", regAdd:"Legg til", regEmpty:"Ingen registrert ennå",
+    regRevision:"Revisjon", regCheckedBy:"Kontrollert av", regApprovedBy:"Godkjent av",
+    refCatDatasheet:"Datablad", refCatDrawing:"Tegning", refCatSld:"Enlinjeskjema", refCatHydraulic:"Hydraulikkskjema",
+    refCatDesignBasis:"Designgrunnlag", refCatVendor:"Leverandørdokumentasjon", refCatOther:"Annet",
+    regUtilityRegister:"Utility-register", utilId:"Utility-ID", utilName:"Utility-navn", utilMedium:"Medium",
+    utilCapacityUnit:"Kapasitetsenhet", utilDistLevel:"Distribusjonsnivå", utilAvailCap:"Tilgjengelig kapasitet",
+    utilElecDC:"Elektrisk DC", utilElecAC:"Elektrisk AC", utilHydOil:"Hydraulikkolje", utilCoolWater:"Kjølevann",
+    utilInstrAir:"Instrumentluft", utilNitrogen:"Nitrogen", utilOther:"Annet",
+    regConsumerRegister:"Consumer Register", crAssembly:"Assembly", crComponent:"Komponent", crDiscipline:"Disiplin",
+    crOperatingMode:"Driftsmodus", crLocation:"Lokasjon", crDataOwner:"Data-eier", crRemarks:"Merknader", crInfoTitle:"Consumer Register-info",
+    regRequiredConsumption:"Krav til forbruk (Required Consumption)",
+    regProducts:"Produktregister", regProductStructure:"Produktstruktur", prodId:"Produkt-ID", prodName:"Produktnavn",
+    prodVendorRef:"Leverandørreferanse", unassigned:"Ikke tildelt assembly",
+    regStructureTree:"Produktstruktur (tre)", structNodeName:"Navn", structParent:"Overordnet",
+    structNoParent:"— Toppnivå (Produkt) —", structAddNode:"Ny node", structUnassigned:"Ikke tildelt i treet",
+    structCannotDeleteHasChildren:"Kan ikke slette – noden har underliggende noder. Slett/flytt disse først.",
+    structAssignTo:"Plassering i produktstruktur",
+    structLevelProduct:"Produkt", structLevelAssembly:"Assembly", structLevelSubassembly:"Subassembly", structLevelComponent:"Komponentgruppe",
+    structDragHint:"Dra i ⠿-håndtaket for å flytte en node under en annen. Slipp øverst i kortet for å gjøre den toppnivå.",
+    structRootDrop:"Slipp her for toppnivå (Produkt)", structCannotMoveIntoSelf:"Kan ikke flytte en node til sin egen undernode.",
+    libBreadcrumbLabel:"Tilhører:", libBreadcrumbNote:"(standard-plassering fra tag-biblioteket – kan overstyres per prosjekt i Produktstruktur-treet)",
+    loginSubtitle:"Logg inn for å fortsette", loginEmail:"E-post", loginPassword:"Passord", loginBtn:"Logg inn",
+    loginErrorGeneric:"Kunne ikke logge inn. Sjekk e-post og passord.",
+    cloudSaveConfirm:"Dette lagrer det du har i appen nå til skyen (overskriver forrige lagring der). Fortsette?",
+    cloudLoadConfirm:"Dette erstatter alt du har i appen nå med det som ligger lagret i skyen. Fortsette?",
+    cloudSaveDone:"Lagret til sky.", cloudLoadDone:"Hentet fra sky.", cloudNoData:"Ingen data lagret i skyen ennå.",
+    cloudError:"Noe gikk galt mot skyen. Prøv igjen.",
+    regUtilityRequirements:"Utility-krav ved forbrukerinntak", uReqParameter:"Parameter",
+    regDataQuality:"Datakvalitet", dqSource:"Kilde", dqStatus:"Status", dqComments:"Kommentarer",
+    dqStatusVerified:"Verifisert", dqStatusPreliminary:"Foreløpig", dqStatusAssumed:"Antatt", dqStatusTbc:"Til bekreftelse",
+    regCapacitySummary:"Kapasitetssammendrag", capAvailable:"Tilgjengelig kapasitet", capDemand:"Maks samtidig behov",
+    capMargin:"Margin", capNoData:"Ingen forbrukslinjer matcher denne utility-typen ennå",
+    regTraceability:"Sporbarhet", traceText:"Hver forbruksverdi kan spores: Prosjekt → Assembly → Tag → Forbrukslinje → Kilde (spesifikasjon/databladref. på taggen, og beregningsformel der aktuelt).",
+    docPurpose:"Formål", docDescription:"Beskrivelse", docSupplier:"Leverandør",
+    docLogo:"Firmalogo", docLogoUpload:"Last opp logo", docLogoRemove:"Fjern logo",
+    docLogoDrop:"Dra og slipp et bilde her, eller trykk for å velge fil",
+    regDefinitions:"Definisjoner og roller", defUtility:"Utility", defUtilityText:"En forsyningstjeneste eller ressurs (elektrisk kraft, hydraulikk, trykkluft, kjølevann osv.) som leveres til én eller flere forbrukere.",
+    defConsumer:"Consumer", defConsumerText:"Utstyr eller en tag som mottar og bruker en utility.",
+    defDisciplineOwner:"Discipline Owner", defDisciplineOwnerText:"Faglig ansvarlig for korrektheten av data knyttet til en gitt disiplin (elektro, hydraulikk, osv.).",
+    regOperatingModes:"Driftsmoduser", opModeId:"Modus-ID", opModeName:"Modusnavn",
+    regLoadCases:"Load Cases", lcCaseId:"Load Case-ID", lcName:"Navn", lcBasis:"Grunnlag",
+    lcModesIncluded:"Inkluderte moduser (fra forbrukslinjenes driftsmodus)", lcCalcDemand:"Beregnet behov (automatisk)",
+    lcAdd:"Ny load case", lcSumAC:"AC", lcSumDC:"DC", lcSumHyd:"Hydraulikk", lcNone:"Ingen load cases definert ennå",
+    noRowsInDoc:"Ingen tags valgt for dette prosjektet ennå.",
+    typeOptions:{elec:"Elektrisk kraft",air:"Trykkluft",hyd:"Hydraulikk",cool:"Kjølevann",fresh:"Ferskvann",sea:"Sjøvann",diesel:"Diesel",chem:"Kjemikalier",steam:"Damp",other:"Annet"}
+  },
+  en:{
+    tagline:"consumption data generator", tabLibrary:"Library", tabProjects:"Projects", tabDocument:"Document",
+    newTag:"New tag", tagNo:"Tag number", tagName:"Equipment name", supplier:"Supplier", spec:"Specification / data sheet ref.",
+    tagNotes:"Notes", save:"Save", cancel:"Cancel", edit:"Edit", del:"Delete",
+    consumptionLines:"Consumption lines", addLine:"Add consumption line", noLines:"No consumption lines yet.",
+    type:"Type of consumption", contInt:"Continuous/intermittent", cont:"Continuous", intm:"Intermittent",
+    min:"Min", normal:"Normal", max:"Max", unit:"Unit", mode:"Operating mode",
+    modeNormal:"Normal", modeCritical:"Critical", modeStabilized:"Stabilized", modeEmergency:"Emergency", modeNA:"–",
+    quality:"Quality at consumer point", storageSec:"Storage (optional)", storageTemp:"Storage temp. °C",
+    acdc:"AC/DC", ac:"AC", dc:"DC", phases:"Number of phases", onePhase:"1-phase", threePhase:"3-phase",
+    voltage:"Nominal voltage (V)", freq:"Frequency (Hz)", powerFactor:"Power factor (cosφ, optional)",
+    amountLabelGeneric:"Values – min/normal/max", amountLabelElec:"Current – min/normal/max (A)",
+    presetLabel:"Component type quick-fill (optional)", presetNone:"— Select component type —",
+    presetOtherValues:"Other common values for this type:",
+    storageHumidity:"Humidity %", storagePressure:"Max pressure (barg)", storageCapacity:"Storage capacity m³",
+    storageLocation:"Storage location", lineNotes:"Notes",
+    emptyLibrary:"No tags in the library yet. Add the first one.",
+    newProject:"New project", projectName:"Project name", customer:"Customer / end user",
+    emptyProjects:"No projects yet.", systemLevel:"System level (optional)",
+    sysCapacity:"Total system capacity", sysMaxLoad:"Max coincident consumer load", sysChar:"Characteristic prior to distribution",
+    assignTags:"Tags in project", noTagsAssigned:"No tags added yet.", addTagsFromLibrary:"Add tags from library",
+    useLibVal:"Use library value", overrideVal:"Overridden for this project", overrideBtn:"Override",
+    resetOverride:"Reset to library value",
+    selectProject:"Select project", noProjectSelected:"Select a project to generate the document.",
+    genTitle:"Utility Consumption Data", exportPdf:"Export PDF", exportExcel:"Export Excel", exportWord:"Export Word",
+    colTag:"Tag", colType:"Type", colContInt:"Cont./Interm.", colMin:"Min", colNormal:"Normal", colMax:"Max",
+    colUnit:"Unit", colMode:"Mode", colQuality:"Quality", colNotes:"Notes", colConsumption:"Consumption (min/normal/max)",
+    docInfoTitle:"Document information", companyName:"Company", docNo:"Doc. no.", revision:"Rev.", docDate:"Date", preparedBy:"Prepared by",
+    generatedBy:"Generated with UCD Pilot",
+    btnSaveData:"Save", btnOpenData:"Open", confirmOpenData:"This will replace everything currently in the app with the contents of the file. Continue?",
+    openDataError:"Could not read the file — is it a valid UCD Pilot data file?", openDataSuccess:"Data loaded.",
+    regTitle:"Registers", regAssumptions:"Assumptions", regOpenItems:"Open items", regReferences:"References", regRevisions:"Revision history",
+    regDescription:"Description", regDiscipline:"Responsible discipline", regStatus:"Status", regStatusOpen:"Open", regStatusClosed:"Closed",
+    regCategory:"Category", regNotes:"Notes", regAdd:"Add", regEmpty:"Nothing registered yet",
+    regRevision:"Revision", regCheckedBy:"Checked by", regApprovedBy:"Approved by",
+    refCatDatasheet:"Datasheet", refCatDrawing:"Drawing", refCatSld:"Single line diagram", refCatHydraulic:"Hydraulic diagram",
+    refCatDesignBasis:"Design basis document", refCatVendor:"Vendor documentation", refCatOther:"Other",
+    regUtilityRegister:"Utility register", utilId:"Utility ID", utilName:"Utility name", utilMedium:"Medium",
+    utilCapacityUnit:"Capacity unit", utilDistLevel:"Distribution level", utilAvailCap:"Available capacity",
+    utilElecDC:"Electrical DC", utilElecAC:"Electrical AC", utilHydOil:"Hydraulic oil", utilCoolWater:"Cooling water",
+    utilInstrAir:"Instrument air", utilNitrogen:"Nitrogen", utilOther:"Other",
+    regConsumerRegister:"Consumer Register", crAssembly:"Assembly", crComponent:"Component", crDiscipline:"Discipline",
+    crOperatingMode:"Operating mode", crLocation:"Location", crDataOwner:"Data owner", crRemarks:"Remarks", crInfoTitle:"Consumer Register info",
+    regRequiredConsumption:"Required Consumption",
+    regProducts:"Product Register", regProductStructure:"Product Structure", prodId:"Product ID", prodName:"Product Name",
+    prodVendorRef:"Vendor Reference", unassigned:"Not assigned to an assembly",
+    regStructureTree:"Product Structure (tree)", structNodeName:"Name", structParent:"Parent",
+    structNoParent:"— Top level (Product) —", structAddNode:"New node", structUnassigned:"Not assigned in the tree",
+    structCannotDeleteHasChildren:"Cannot delete — this node has child nodes. Delete/move those first.",
+    structAssignTo:"Position in product structure",
+    structLevelProduct:"Product", structLevelAssembly:"Assembly", structLevelSubassembly:"Subassembly", structLevelComponent:"Component group",
+    structDragHint:"Drag the ⠿ handle to move a node under another. Drop at the top of the card to make it top-level.",
+    structRootDrop:"Drop here for top level (Product)", structCannotMoveIntoSelf:"Cannot move a node into its own descendant.",
+    libBreadcrumbLabel:"Belongs to:", libBreadcrumbNote:"(default placement from the tag library — can be overridden per project in the Product Structure tree)",
+    loginSubtitle:"Log in to continue", loginEmail:"Email", loginPassword:"Password", loginBtn:"Log in",
+    loginErrorGeneric:"Could not log in. Check your email and password.",
+    cloudSaveConfirm:"This saves what's currently in the app to the cloud (overwriting the previous save there). Continue?",
+    cloudLoadConfirm:"This replaces everything currently in the app with what's saved in the cloud. Continue?",
+    cloudSaveDone:"Saved to cloud.", cloudLoadDone:"Loaded from cloud.", cloudNoData:"No data saved in the cloud yet.",
+    cloudError:"Something went wrong with the cloud connection. Try again.",
+    regUtilityRequirements:"Utility Requirements at Consumer Inlet", uReqParameter:"Parameter",
+    regDataQuality:"Data Quality", dqSource:"Source", dqStatus:"Status", dqComments:"Comments",
+    dqStatusVerified:"Verified", dqStatusPreliminary:"Preliminary", dqStatusAssumed:"Assumed", dqStatusTbc:"To be confirmed",
+    regCapacitySummary:"Utility Capacity Summary", capAvailable:"Available Capacity", capDemand:"Max Coincident Demand",
+    capMargin:"Margin", capNoData:"No consumption lines match this utility type yet",
+    regTraceability:"Traceability", traceText:"Every consumption value is traceable: Project → Assembly → Tag → Consumption line → Source (specification/data sheet reference on the tag, and the calculation formula where applicable).",
+    docPurpose:"Purpose", docDescription:"Description", docSupplier:"Supplier",
+    docLogo:"Company logo", docLogoUpload:"Upload logo", docLogoRemove:"Remove logo",
+    docLogoDrop:"Drag and drop an image here, or click to choose a file",
+    regDefinitions:"Definitions and Roles", defUtility:"Utility", defUtilityText:"A supply service or resource (electrical power, hydraulics, compressed air, cooling water, etc.) delivered to one or more consumers.",
+    defConsumer:"Consumer", defConsumerText:"Equipment or a tag that receives and uses a utility.",
+    defDisciplineOwner:"Discipline Owner", defDisciplineOwnerText:"The person responsible for the correctness of data belonging to a given discipline (electrical, hydraulic, etc.).",
+    regOperatingModes:"Operating Modes", opModeId:"Mode ID", opModeName:"Mode Name",
+    regLoadCases:"Load Cases", lcCaseId:"Load Case ID", lcName:"Name", lcBasis:"Basis",
+    lcModesIncluded:"Included modes (from consumption line operating mode)", lcCalcDemand:"Calculated demand (automatic)",
+    lcAdd:"New load case", lcSumAC:"AC", lcSumDC:"DC", lcSumHyd:"Hydraulic", lcNone:"No load cases defined yet",
+    noRowsInDoc:"No tags selected for this project yet.",
+    typeOptions:{elec:"Electrical power",air:"Compressed air",hyd:"Hydraulic power",cool:"Cooling medium",fresh:"Fresh water",sea:"Sea water",diesel:"Diesel oil",chem:"Chemical injection",steam:"Steam",other:"Other"}
+  }
+};
+
+var UNITS=["kW","kVA","VA","W","A","Nm3/h","l/min","m3/h","kg/h","bar","barg","l","m3","kg","%"];
+var MODE_SUGGESTIONS=["Main","EOS"];
+function allKnownModes(){
+  var set={};MODE_SUGGESTIONS.forEach(function(m){set[m]=true;});
+  state.tags.forEach(function(tag){tag.lines.forEach(function(l){if(l.mode)set[l.mode]=true;});});
+  return Object.keys(set);
+}
+function projectModes(p){
+  var set={};
+  p.tagLinks.forEach(function(tl){
+    var tag=findTag(tl.tagId);if(!tag)return;
+    var line=findLine(tag,tl.lineId);if(!line)return;
+    var eff=effLine(line,tl);
+    if(eff.mode)set[eff.mode]=true;
+  });
+  (p.loadCases||[]).forEach(function(lc){Object.keys(lc.modes||{}).forEach(function(m){if(lc.modes[m])set[m]=true;});});
+  return Object.keys(set);
+}
+var CONTINT=["cont","intm"];
+
+var COMPONENT_PRESETS=[
+  {category:"Electric Motor",name:"Main Pump Motor",type:"elec",acdc:"ac",phases:"3",voltages:[400,440,690],freqs:[50,60]},
+  {category:"Electric Motor",name:"Auxiliary Pump Motor",type:"elec",acdc:"ac",phases:"3",voltages:[400,440],freqs:[50,60]},
+  {category:"PLC",name:"PLC Controller",type:"elec",acdc:"dc",voltages:[24]},
+  {category:"HMI",name:"Operator Panel",type:"elec",acdc:"dc",voltages:[24]},
+  {category:"Power Supply",name:"24VDC Power Supply",type:"elec",acdc:"dc",voltages:[24],note:"Input 230VAC → Output 24VDC"},
+  {category:"Cabinet Heater",name:"Heater",type:"elec",acdc:"ac",phases:"1",voltages:[230]},
+  {category:"Cooling Fan",name:"Fan",type:"elec",acdc:"ac",phases:"1",voltages:[230]},
+  {category:"Lighting",name:"LED Light",type:"elec",acdc:"ac",phases:"1",voltages:[230]},
+  {category:"Pressure Transmitter",name:"Pressure Sensor",type:"elec",acdc:"dc",voltages:[24]},
+  {category:"Solenoid Valve",name:"Direction Valve",type:"elec",acdc:"dc",voltages:[24]},
+  {category:"Hydraulic Consumer",name:"Crane",type:"hyd"},
+  {category:"Hydraulic Consumer",name:"BOOST",type:"hyd"},
+  {category:"Filter Indicator",name:"Filter Monitor",type:"elec",acdc:"dc",voltages:[24]},
+  {category:"Network Switch",name:"Ethernet Switch",type:"elec",acdc:"dc",voltages:[24]}
+];
+
+var state={
+  lang:"no",
+  tab:"library",
+  tags:[
+    {id:uid(),tagNo:"14-HPU-001",name:"Hydraulic Power Unit",supplier:"Bergen Hydraulic AS",spec:"DS-HPU-14-001 / FLOW 120 20 N",
+     notes:"Tank 450 L. Systemtrykk 300 barg (fast). Hydraulisk utgangskapasitet levert til forbrukere: se Utility Register (U-03), ikke egen forbrukslinje her siden HPU er kilden, ikke forbrukeren.",
+     assembly:"Main Hydraulic System",component:"Hydraulic Power Unit",discipline:"Hydraulikk/Elektro",operatingMode:"Normal / EOS",location:"Skid – hoveddekk",dataOwner:"Kenneth Hansen",remarks:"",
+     lines:[
+       {id:uid(),type:"elec",contInt:"cont",min:"",normal:"5.75",max:"6.325",unit:"kVA",mode:"Main",quality:"230VAC (207–253V), I maks 25A, 1-fas",acdc:"ac",phases:"1",voltage:"",freq:"50",powerFactor:"",storageTemp:"",storageHumidity:"",storagePressure:"",storageCapacity:"",storageLocation:"",notes:"Main 230VAC"},
+       {id:uid(),type:"elec",contInt:"cont",min:"",normal:"152",max:"168",unit:"kVA",mode:"Main",quality:"440VAC (396–484V), I maks 200A, 3-fas",acdc:"ac",phases:"3",voltage:"",freq:"50",powerFactor:"",storageTemp:"",storageHumidity:"",storagePressure:"",storageCapacity:"",storageLocation:"",notes:"Main 440VAC"},
+       {id:uid(),type:"elec",contInt:"cont",min:"",normal:"2.3",max:"2.53",unit:"kVA",mode:"EOS",quality:"230VAC (maks 253V), I maks 10A, 1-fas",acdc:"ac",phases:"1",voltage:"",freq:"50",powerFactor:"",storageTemp:"",storageHumidity:"",storagePressure:"",storageCapacity:"",storageLocation:"",notes:"EOS 230VAC"},
+       {id:uid(),type:"elec",contInt:"cont",min:"",normal:"24.4",max:"26.8",unit:"kVA",mode:"EOS",quality:"440VAC (396–484V), I maks 32A, 3-fas",acdc:"ac",phases:"3",voltage:"",freq:"50",powerFactor:"",storageTemp:"",storageHumidity:"",storagePressure:"",storageCapacity:"",storageLocation:"",notes:"EOS 440VAC"}
+     ]},
+    {id:uid(),tagNo:"30-CR-002",name:"Marine Crane 15T",supplier:"Palfinger Marine",spec:"DS-CR-30-002 / PK41002MD",notes:"",
+     assembly:"Deck Equipment",component:"Marine Crane",discipline:"Hydraulikk/Elektro",operatingMode:"Normal / EOS",location:"Hoveddekk, styrbord",dataOwner:"Kenneth Hansen",remarks:"",
+     lines:[
+       {id:uid(),type:"elec",contInt:"cont",min:"",normal:"480",max:"520",unit:"VA",mode:"Main",quality:"24VDC (22–26V), I maks 20A",acdc:"dc",phases:"1",voltage:"",freq:"",powerFactor:"",storageTemp:"",storageHumidity:"",storagePressure:"",storageCapacity:"",storageLocation:"",notes:"Main 24VDC"},
+       {id:uid(),type:"elec",contInt:"cont",min:"",normal:"480",max:"520",unit:"VA",mode:"EOS",quality:"24VDC (22–26V), I maks 20A",acdc:"dc",phases:"1",voltage:"",freq:"",powerFactor:"",storageTemp:"",storageHumidity:"",storagePressure:"",storageCapacity:"",storageLocation:"",notes:"EOS 24VDC"},
+       {id:uid(),type:"hyd",contInt:"intm",min:"80",normal:"100",max:"120",unit:"l/min",mode:"Main",quality:"300 barg (fast) – normal avhenger av variabel last (LS-system)",storageTemp:"",storageHumidity:"",storagePressure:"",storageCapacity:"",storageLocation:"",notes:"Main – LS-system, last variabel"}
+     ]}
+  ],
+  projects:[
+    {id:uid(),name:"Prosjekt 2 – Offshore leveranse",customer:"",sysCapacity:"",sysMaxLoad:"",sysChar:"",
+     companyName:"Bergen Hydraulic AS",docNo:"UCD-0001",revision:"A",docDate:"",preparedBy:"Kenneth Hansen",logoDataUrl:"",
+     purpose:"Dokumentere forventet utility-forbruk for offshoreleveransen slik at mottakende fartøy/installasjon kan dimensjonere forsyning.",
+     description:"HPU og markrankran levert som del av Prosjekt 2.",supplier:"Bergen Hydraulic AS",
+     assumptions:[{id:uid(),description:"Samtidighetsfaktor mellom HPU og kran er ikke verifisert mot faktisk driftsprofil.",discipline:"Elektro",status:"open"}],
+     openItems:[
+       {id:uid(),description:"Bekreft om kran EOS og HPU EOS kan opptre samtidig.",discipline:"Elektro",status:"open"},
+       {id:uid(),description:"Bygg om Produktstruktur (§4) til ekte flernivå-tre (Product→Assembly→Subassembly→Component) i stedet for dagens gruppering på Assembly-tekst.",discipline:"Utvikling",status:"open"}
+     ],
+     references:[{id:uid(),category:"vendorDoc",description:"PK41002MD produktdatablad",notes:""}],
+     revisions:[{id:uid(),revision:"A",date:"",description:"Første utgivelse",preparedBy:"Kenneth Hansen",checkedBy:"",approvedBy:""}],
+     utilityRegister:[
+       {id:uid(),utilId:"U-01",utilName:"elecAC",medium:"230/440V AC / 50Hz",capacityUnit:"kVA",distLevel:"MCC",availCap:"",remarks:""},
+       {id:uid(),utilId:"U-02",utilName:"elecDC",medium:"24V DC",capacityUnit:"VA",distLevel:"Control panel",availCap:"",remarks:""},
+       {id:uid(),utilId:"U-03",utilName:"hydOil",medium:"Hydraulikkolje",capacityUnit:"l/min",distLevel:"HPU",availCap:"120",remarks:"EOS-forsyning: 20 l/min separat. Systemtrykk 300 barg (fast). Tank 450 L."}
+     ],
+     products:[
+       {id:uid(),productId:"P-01",productName:"FLOW 120 20 N",description:"Hydraulic Power Unit",location:"Skid – hoveddekk",operatingMode:"Normal / EOS",vendorRef:"Bergen Hydraulic AS",remarks:""},
+       {id:uid(),productId:"P-02",productName:"PK41002MD",description:"Marine Crane 15T",location:"Hoveddekk, styrbord",operatingMode:"Normal / Kritisk / EOS",vendorRef:"Palfinger Marine",remarks:""}
+     ],
+     structureTree:[
+       {id:"n1",parentId:null,name:"FLOW 120 20 N"},
+       {id:"n2",parentId:"n1",name:"Main Hydraulic System"},
+       {id:"n3",parentId:"n2",name:"Electrical Supply"},
+       {id:"n4",parentId:null,name:"PK41002MD"},
+       {id:"n5",parentId:"n4",name:"Deck Equipment"}
+     ],
+     utilityRequirements:[
+       {id:uid(),tagNo:"14-HPU-001",parameter:"Spenningstoleranse",unit:"%",minimum:"-10",normal:"0",maximum:"+6",notes:"IEC 60092"},
+       {id:uid(),tagNo:"30-CR-002",parameter:"Min. hydraulikktrykk ved inntak",unit:"bar",minimum:"280",normal:"300",maximum:"320",notes:""}
+     ],
+     dataQuality:[
+       {id:uid(),source:"Palfinger datablad PK41002MD",status:"verified",revision:"1",comments:""},
+       {id:uid(),source:"HPU FLOW 120 20 N ytelsesdata",status:"preliminary",revision:"0",comments:"Avventer endelig testrapport"}
+     ],
+     operatingModes:[
+       {id:uid(),modeId:"M-01",modeName:"Normal Operation",description:"Main strømforsyning og hydraulikk i normal drift"},
+       {id:uid(),modeId:"M-02",modeName:"Crane Operation",description:"Kran i aktiv løfteoperasjon"},
+       {id:uid(),modeId:"M-03",modeName:"EOS Operation",description:"Nøddrift på emergency operating supply"}
+     ],
+     loadCases:[
+       {id:uid(),caseId:"LC01",name:"Normal Operation",description:"HPU og kran i normal drift (main-forsyning)",basis:"",modes:{"Main":true}},
+       {id:uid(),caseId:"LC02",name:"EOS Operation",description:"Kun nødstrøm/EOS-forsyning aktiv (main bortfalt)",basis:"Main-forsyning bortfalt",modes:{"EOS":true}}
+     ],
+     tagLinks:[
+       {tagId:null,lineId:null,overrides:{}}
+     ]}
+  ],
+  editingTagId:null,
+  addingLineForTag:null,
+  editingLineFor:null,
+  expandedProject:null,
+  docProjectId:null,
+  registerAdding:null,
+  registerEditRow:null,
+  lcAdding:null,
+  lcEditing:null,
+  structAdding:null,
+  structEditing:null
+};
+// fix seed project tagLinks to reference real ids
+state.projects[0].tagLinks=[
+  {tagId:state.tags[0].id,lineId:state.tags[0].lines[0].id,overrides:{},structureNodeId:"n3"},
+  {tagId:state.tags[0].id,lineId:state.tags[0].lines[1].id,overrides:{},structureNodeId:"n3"},
+  {tagId:state.tags[0].id,lineId:state.tags[0].lines[2].id,overrides:{},structureNodeId:"n3"},
+  {tagId:state.tags[0].id,lineId:state.tags[0].lines[3].id,overrides:{},structureNodeId:"n3"},
+  {tagId:state.tags[1].id,lineId:state.tags[1].lines[0].id,overrides:{},structureNodeId:"n5"},
+  {tagId:state.tags[1].id,lineId:state.tags[1].lines[1].id,overrides:{},structureNodeId:"n5"},
+  {tagId:state.tags[1].id,lineId:state.tags[1].lines[2].id,overrides:{},structureNodeId:"n5"}
+];
+state.docProjectId=state.projects[0].id;
+
+function t(){return T[state.lang];}
+function esc(s){return (s||"").toString().replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+
+function findTag(id){return state.tags.find(function(x){return x.id===id;});}
+function findLine(tag,id){return tag.lines.find(function(x){return x.id===id;});}
+function findProject(id){return state.projects.find(function(x){return x.id===id;});}
+
+function modeLabel(m){var d=t();return {normal:d.modeNormal,critical:d.modeCritical,stabilized:d.modeStabilized,emergency:d.modeEmergency,na:d.modeNA}[m]||m||"–";}
+function lcModeNames(lc){return Object.keys(lc.modes||{}).filter(function(m){return lc.modes[m];}).join(", ");}
+function contIntLabel(c){var d=t();return c==="cont"?d.cont:d.intm;}
+function typeLabel(ty){return t().typeOptions[ty]||ty;}
+
+function selectOptions(list,labelFn,selected){
+  return list.map(function(v){return '<option value="'+v+'"'+(v===selected?" selected":"")+'>'+esc(labelFn(v))+'</option>';}).join("");
+}
+function typeSelectOptions(selected){
+  var d=t();
+  return Object.keys(d.typeOptions).map(function(k){return '<option value="'+k+'"'+(k===selected?" selected":"")+'>'+esc(d.typeOptions[k])+'</option>';}).join("");
+}
+function unitSelectOptions(selected){return selectOptions(UNITS,function(u){return u;},selected);}
+function modeInputHtml(id,value,listId){return '<label>'+t().mode+'</label><input id="'+id+'" list="'+listId+'" value="'+esc(value)+'"><datalist id="'+listId+'">'+allKnownModes().map(function(m){return '<option value="'+esc(m)+'">';}).join("")+'</datalist>';}
+function contIntSelectOptions(selected){return selectOptions(CONTINT,contIntLabel,selected);}
+
+/* ---------- REGISTERS (Assumptions / Open items / References / Revisions) ---------- */
+
+var REG_STATUS=["open","closed"];
+var REG_CATS=["datasheet","drawing","sld","hydraulicDiagram","designBasis","vendorDoc","other"];
+
+function regCfg(key){
+  var d=t();
+  if(key==="assumptions"||key==="openItems"){
+    return {title:key==="assumptions"?d.regAssumptions:d.regOpenItems,
+      fields:[{k:"description",label:d.regDescription,type:"textarea"},{k:"discipline",label:d.regDiscipline,type:"text"},
+        {k:"status",label:d.regStatus,type:"select",opts:REG_STATUS,optLabel:function(v){return v==="open"?d.regStatusOpen:d.regStatusClosed;}}],
+      summary:function(row){return esc(row.description)+(row.discipline?" · "+esc(row.discipline):"")+" · "+(row.status==="open"?d.regStatusOpen:d.regStatusClosed);}};
+  }
+  if(key==="references"){
+    return {title:d.regReferences,
+      fields:[{k:"category",label:d.regCategory,type:"select",opts:REG_CATS,optLabel:function(v){return {datasheet:d.refCatDatasheet,drawing:d.refCatDrawing,sld:d.refCatSld,hydraulicDiagram:d.refCatHydraulic,designBasis:d.refCatDesignBasis,vendorDoc:d.refCatVendor,other:d.refCatOther}[v];}},
+        {k:"description",label:d.regDescription,type:"text"},{k:"notes",label:d.regNotes,type:"text"}],
+      summary:function(row){var catLbl={datasheet:d.refCatDatasheet,drawing:d.refCatDrawing,sld:d.refCatSld,hydraulicDiagram:d.refCatHydraulic,designBasis:d.refCatDesignBasis,vendorDoc:d.refCatVendor,other:d.refCatOther}[row.category]||row.category;
+        return "["+esc(catLbl)+"] "+esc(row.description)+(row.notes?" · "+esc(row.notes):"");}};
+  }
+  if(key==="revisions"){
+    return {title:d.regRevisions,
+      fields:[{k:"revision",label:d.regRevision,type:"text"},{k:"date",label:d.docDate,type:"date"},{k:"description",label:d.regDescription,type:"text"},
+        {k:"preparedBy",label:d.preparedBy,type:"text"},{k:"checkedBy",label:d.regCheckedBy,type:"text"},{k:"approvedBy",label:d.regApprovedBy,type:"text"}],
+      summary:function(row){return esc(row.revision)+" · "+esc(row.date)+" · "+esc(row.description)+" · "+esc(row.preparedBy);}};
+  }
+  if(key==="utilityRegister"){
+    var UTIL_TYPES=["elecDC","elecAC","hydOil","coolWater","instrAir","nitrogen","other"];
+    var utilLbl=function(v){return {elecDC:d.utilElecDC,elecAC:d.utilElecAC,hydOil:d.utilHydOil,coolWater:d.utilCoolWater,instrAir:d.utilInstrAir,nitrogen:d.utilNitrogen,other:d.utilOther}[v];};
+    return {title:d.regUtilityRegister,
+      fields:[{k:"utilId",label:d.utilId,type:"text"},{k:"utilName",label:d.utilName,type:"select",opts:UTIL_TYPES,optLabel:utilLbl},
+        {k:"medium",label:d.utilMedium,type:"text"},{k:"capacityUnit",label:d.utilCapacityUnit,type:"text"},
+        {k:"distLevel",label:d.utilDistLevel,type:"text"},{k:"availCap",label:d.utilAvailCap,type:"text"},{k:"remarks",label:d.regNotes,type:"text"}],
+      summary:function(row){return "["+esc(row.utilId)+"] "+esc(utilLbl(row.utilName))+" · "+esc(row.medium)+" · "+esc(row.availCap)+" "+esc(row.capacityUnit);}};
+  }
+  if(key==="products"){
+    return {title:d.regProducts,
+      fields:[{k:"productId",label:d.prodId,type:"text"},{k:"productName",label:d.prodName,type:"text"},
+        {k:"description",label:d.regDescription,type:"text"},{k:"location",label:d.crLocation,type:"text"},
+        {k:"operatingMode",label:d.crOperatingMode,type:"text"},{k:"vendorRef",label:d.prodVendorRef,type:"text"},{k:"remarks",label:d.regNotes,type:"text"}],
+      summary:function(row){return "["+esc(row.productId)+"] "+esc(row.productName)+(row.description?" · "+esc(row.description):"");}};
+  }
+  if(key==="utilityRequirements"){
+    return {title:d.regUtilityRequirements,
+      fields:[{k:"tagNo",label:d.colTag,type:"text"},{k:"parameter",label:d.uReqParameter,type:"text"},{k:"unit",label:d.colUnit,type:"text"},
+        {k:"minimum",label:d.min,type:"text"},{k:"normal",label:d.normal,type:"text"},{k:"maximum",label:d.max,type:"text"},{k:"notes",label:d.regNotes,type:"text"}],
+      summary:function(row){return esc(row.tagNo)+" · "+esc(row.parameter)+": "+esc(row.minimum)+"/"+esc(row.normal)+"/"+esc(row.maximum)+" "+esc(row.unit);}};
+  }
+  if(key==="dataQuality"){
+    var DQ_STATUS=["verified","preliminary","assumed","tbc"];
+    var dqLbl=function(v){return {verified:d.dqStatusVerified,preliminary:d.dqStatusPreliminary,assumed:d.dqStatusAssumed,tbc:d.dqStatusTbc}[v];};
+    return {title:d.regDataQuality,
+      fields:[{k:"source",label:d.dqSource,type:"text"},{k:"status",label:d.dqStatus,type:"select",opts:DQ_STATUS,optLabel:dqLbl},
+        {k:"revision",label:d.regRevision,type:"text"},{k:"comments",label:d.dqComments,type:"text"}],
+      summary:function(row){return esc(row.source)+" · "+esc(dqLbl(row.status))+" · rev "+esc(row.revision);}};
+  }
+  if(key==="operatingModes"){
+    return {title:d.regOperatingModes,
+      fields:[{k:"modeId",label:d.opModeId,type:"text"},{k:"modeName",label:d.opModeName,type:"text"},{k:"description",label:d.regDescription,type:"text"}],
+      summary:function(row){return "["+esc(row.modeId)+"] "+esc(row.modeName)+(row.description?" · "+esc(row.description):"");}};
+  }
+}
+
+function registerFieldsHtml(cfg,row){
+  var html="";
+  cfg.fields.forEach(function(f){
+    var v=row?(row[f.k]||""):"";
+    html+='<label>'+f.label+'</label>';
+    if(f.type==="textarea"){html+='<textarea id="rf_'+f.k+'" rows="2">'+esc(v)+'</textarea>';}
+    else if(f.type==="select"){html+='<select id="rf_'+f.k+'">'+f.opts.map(function(o){return '<option value="'+o+'"'+(o===v?" selected":"")+'>'+esc(f.optLabel(o))+'</option>';}).join("")+'</select>';}
+    else if(f.type==="date"){html+='<input type="date" id="rf_'+f.k+'" value="'+esc(v)+'">';}
+    else{html+='<input id="rf_'+f.k+'" value="'+esc(v)+'">';}
+  });
+  return html;
+}
+
+function renderRegisterCard(p,key){
+  var d=t();
+  var cfg=regCfg(key);
+  var rows=p[key]||[];
+  var html='<div class="row"><div class="muted" style="font-weight:600">'+cfg.title+'</div>'+
+    '<button class="ghost" data-regAdd="'+key+'|'+p.id+'">+ '+d.regAdd+'</button></div>';
+  if(rows.length===0){
+    html+='<div class="muted" style="padding:4px 0 8px">'+d.regEmpty+'</div>';
+  } else {
+    rows.forEach(function(row){
+      if(state.registerEditRow===key+"|"+p.id+"|"+row.id){
+        html+='<div class="formbox">'+registerFieldsHtml(cfg,row)+
+          '<div class="formbtns"><button class="primary" data-regSave="'+key+'|'+p.id+'|'+row.id+'">'+d.save+'</button><button class="secondary" data-regCancel="1">'+d.cancel+'</button></div></div>';
+      } else {
+        html+='<div class="line-item"><div class="row"><div style="font-size:12.5px">'+cfg.summary(row)+'</div>'+
+          '<div style="white-space:nowrap"><button class="ghost" data-regEdit="'+key+'|'+p.id+'|'+row.id+'">'+d.edit+'</button> <button class="danger-btn" data-regDel="'+key+'|'+p.id+'|'+row.id+'">'+d.del+'</button></div></div></div>';
+      }
+    });
+  }
+  if(state.registerAdding===key+"|"+p.id){
+    html+='<div class="formbox">'+registerFieldsHtml(cfg,null)+
+      '<div class="formbtns"><button class="primary" data-regSave="'+key+'|'+p.id+'|">'+d.save+'</button><button class="secondary" data-regCancel="1">'+d.cancel+'</button></div></div>';
+  }
+  return html;
+}
+
+function bindRegisterEvents(rerenderFn){
+  document.querySelectorAll("[data-regAdd]").forEach(function(b){b.onclick=function(){
+    state.registerAdding=b.getAttribute("data-regAdd");state.registerEditRow=null;rerenderFn();
+  };});
+  document.querySelectorAll("[data-regEdit]").forEach(function(b){b.onclick=function(){
+    state.registerEditRow=b.getAttribute("data-regEdit");state.registerAdding=null;rerenderFn();
+  };});
+  document.querySelectorAll("[data-regCancel]").forEach(function(b){b.onclick=function(){state.registerAdding=null;state.registerEditRow=null;rerenderFn();};});
+  document.querySelectorAll("[data-regDel]").forEach(function(b){b.onclick=function(){
+    var parts=b.getAttribute("data-regDel").split("|");
+    var p=findProject(parts[1]);
+    p[parts[0]]=p[parts[0]].filter(function(r){return r.id!==parts[2];});
+    rerenderFn();
+  };});
+  document.querySelectorAll("[data-regSave]").forEach(function(b){b.onclick=function(){
+    var parts=b.getAttribute("data-regSave").split("|");
+    var key=parts[0],p=findProject(parts[1]),rowId=parts[2];
+    var cfg=regCfg(key);
+    p[key]=p[key]||[];
+    if(rowId){
+      var existing=p[key].find(function(r){return r.id===rowId;});
+      if(existing)cfg.fields.forEach(function(f){existing[f.k]=val("rf_"+f.k);});
+    } else {
+      var row={id:uid()};
+      cfg.fields.forEach(function(f){row[f.k]=val("rf_"+f.k);});
+      p[key].push(row);
+    }
+    state.registerAdding=null;state.registerEditRow=null;rerenderFn();
+  };});
+}
+
+function registersDocHtml(p,d){
+  var html="";
+  ["operatingModes","products","utilityRegister","utilityRequirements","assumptions","openItems","references","revisions","dataQuality"].forEach(function(key){
+    var cfg=regCfg(key);
+    var rows=p[key]||[];
+    html+='<div style="margin-top:14px"><div style="font-weight:600;font-size:12px;margin-bottom:4px">'+cfg.title+'</div>';
+    if(rows.length===0){
+      html+='<div class="muted" style="font-size:10.5px">'+d.regEmpty+'</div>';
+    } else {
+      html+='<table class="doc" style="font-size:9px"><thead><tr>'+cfg.fields.map(function(f){return '<th>'+f.label+'</th>';}).join("")+'</tr></thead><tbody>';
+      rows.forEach(function(row){
+        html+='<tr>'+cfg.fields.map(function(f){
+          var v=row[f.k]||"";
+          if(f.type==="select")v=f.optLabel(v);
+          return '<td>'+esc(v)+'</td>';
+        }).join("")+'</tr>';
+      });
+      html+='</tbody></table>';
+    }
+    html+='</div>';
+  });
+  return html;
+}
+
+/* ---------- LIBRARY ---------- */
+
+function renderLibrary(){
+  var d=t();
+  var html="";
+  html+='<div class="row"><h3 style="margin:0">'+d.tabLibrary+'</h3><button class="primary" id="btnNewTag">+ '+d.newTag+'</button></div>';
+
+  if(state.editingTagId==="__new__"||( state.editingTagId && findTag(state.editingTagId))){
+    html+=tagFormHtml(state.editingTagId==="__new__"?null:findTag(state.editingTagId));
+  }
+
+  if(state.tags.length===0){
+    html+='<div class="card empty">'+d.emptyLibrary+'</div>';
+  } else {
+    state.tags.forEach(function(tag){
+      html+='<div class="card">';
+      html+='<div class="equip-header"><div class="row"><div><span class="tagno">'+esc(tag.tagNo)+'</span><div style="margin-top:6px;font-weight:700;font-size:16px">'+esc(tag.name)+'</div>';
+      if(tag.supplier)html+='<div class="muted">'+esc(tag.supplier)+(tag.spec?" · "+esc(tag.spec):"")+'</div>';
+      html+='</div><div style="text-align:right;white-space:nowrap"><button class="ghost" data-editTag="'+tag.id+'">'+d.edit+'</button> <button class="danger-btn" data-delTag="'+tag.id+'">'+d.del+'</button></div></div></div>';
+
+      html+='<div style="margin-top:10px"><div class="muted" style="font-weight:600">'+d.consumptionLines+'</div>';
+      if(tag.lines.length===0){
+        html+='<div class="muted" style="padding:6px 0">'+d.noLines+'</div>';
+      } else {
+        tag.lines.forEach(function(line){
+          if(state.editingLineFor && state.editingLineFor.tagId===tag.id && state.editingLineFor.lineId===line.id){
+            html+=lineFormHtml(tag,line);
+          } else {
+            var cdLib=consumptionDisplay(line,{min:line.min,normal:line.normal,max:line.max,unit:line.unit});
+            html+='<div class="line-item"><div class="row"><div><span class="lt">'+esc(typeLabel(line.type))+'</span> · '+esc(contIntLabel(line.contInt))+' · '+cdLib.text+
+              (line.mode?' · '+esc(modeLabel(line.mode)):'')+'</div><div style="white-space:nowrap"><button class="ghost" data-editLine="'+tag.id+'|'+line.id+'">'+d.edit+'</button> <button class="danger-btn" data-delLine="'+tag.id+'|'+line.id+'">'+d.del+'</button></div></div>'+
+              (cdLib.detail?'<div class="muted">'+esc(cdLib.detail)+'</div>':(line.quality?'<div class="muted">'+esc(line.quality)+'</div>':''))+'</div>';
+          }
+        });
+      }
+      if(state.addingLineForTag===tag.id){
+        html+=lineFormHtml(tag,null);
+      } else {
+        html+='<button class="secondary" style="margin-top:8px" data-addLine="'+tag.id+'">+ '+d.addLine+'</button>';
+      }
+      html+='</div></div>';
+    });
+  }
+  document.getElementById("tab-library").innerHTML=html;
+  bindLibraryEvents();
+}
+
+function tagFormHtml(tag){
+  var d=t();
+  return '<div class="formbox" id="tagForm">'+
+    '<label>'+d.tagNo+'</label><input id="f_tagNo" value="'+esc(tag?tag.tagNo:"")+'">'+
+    '<label>'+d.tagName+'</label><input id="f_tagName" value="'+esc(tag?tag.name:"")+'">'+
+    '<div class="grid2"><div><label>'+d.supplier+'</label><input id="f_supplier" value="'+esc(tag?tag.supplier:"")+'"></div>'+
+    '<div><label>'+d.spec+'</label><input id="f_spec" value="'+esc(tag?tag.spec:"")+'"></div></div>'+
+    '<label>'+d.tagNotes+'</label><textarea id="f_notes" rows="2">'+esc(tag?tag.notes:"")+'</textarea>'+
+    '<div class="muted" style="margin-top:10px;font-weight:600">'+d.crInfoTitle+'</div>'+
+    '<div class="grid2"><div><label>'+d.crAssembly+'</label><input id="f_assembly" value="'+esc(tag?tag.assembly:"")+'"></div>'+
+    '<div><label>'+d.crComponent+'</label><input id="f_component" value="'+esc(tag?tag.component:"")+'"></div></div>'+
+    '<div class="grid2"><div><label>'+d.crDiscipline+'</label><input id="f_discipline" value="'+esc(tag?tag.discipline:"")+'"></div>'+
+    '<div><label>'+d.crOperatingMode+'</label><input id="f_opMode" value="'+esc(tag?tag.operatingMode:"")+'"></div></div>'+
+    '<div class="grid2"><div><label>'+d.crLocation+'</label><input id="f_location" value="'+esc(tag?tag.location:"")+'"></div>'+
+    '<div><label>'+d.crDataOwner+'</label><input id="f_dataOwner" value="'+esc(tag?tag.dataOwner:"")+'"></div></div>'+
+    '<label>'+d.crRemarks+'</label><input id="f_remarks" value="'+esc(tag?tag.remarks:"")+'">'+
+    '<div class="formbtns"><button class="primary" id="saveTag" data-id="'+(tag?tag.id:"")+'">'+d.save+'</button><button class="secondary" id="cancelTag">'+d.cancel+'</button></div>'+
+    '</div>';
+}
+
+function lineFormHtml(tag,line){
+  var d=t();
+  var l=line||{type:"elec",contInt:"cont",min:"",normal:"",max:"",unit:"kW",mode:"",quality:"",
+    acdc:"ac",phases:"3",voltage:"",freq:"50",powerFactor:"",
+    storageTemp:"",storageHumidity:"",storagePressure:"",storageCapacity:"",storageLocation:"",notes:""};
+  var isElec=l.type==="elec";
+  return '<div class="formbox">'+
+    '<label>'+d.presetLabel+'</label><select id="fl_preset" onchange="applyPreset(this)"><option value="">'+d.presetNone+'</option>'+
+    COMPONENT_PRESETS.map(function(pr,i){return '<option value="'+i+'">'+esc(pr.category)+' – '+esc(pr.name)+'</option>';}).join("")+
+    '</select><div id="presetHint" class="muted" style="margin:2px 0 0"></div>'+
+    '<div class="grid2"><div><label>'+d.type+'</label><select id="fl_type" onchange="toggleElecFields(this)">'+typeSelectOptions(l.type)+'</select></div>'+
+    '<div><label>'+d.contInt+'</label><select id="fl_contInt">'+contIntSelectOptions(l.contInt)+'</select></div></div>'+
+
+    '<div id="elecWrap" style="display:'+(isElec?"block":"none")+'">'+
+    '<div class="grid2"><div><label>'+d.acdc+'</label><select id="fl_acdc">'+
+      '<option value="ac"'+(l.acdc!=="dc"?" selected":"")+'>'+d.ac+'</option><option value="dc"'+(l.acdc==="dc"?" selected":"")+'>'+d.dc+'</option></select></div>'+
+    '<div><label>'+d.phases+'</label><select id="fl_phases">'+
+      '<option value="1"'+(l.phases==="1"?" selected":"")+'>'+d.onePhase+'</option><option value="3"'+(l.phases!=="1"?" selected":"")+'>'+d.threePhase+'</option></select></div></div>'+
+    '<div class="grid2"><div><label>'+d.voltage+'</label><input type="number" id="fl_voltage" value="'+esc(l.voltage)+'"></div>'+
+    '<div><label>'+d.freq+'</label><input type="number" id="fl_freq" value="'+esc(l.freq)+'"></div></div>'+
+    '<label>'+d.powerFactor+'</label><input type="number" step="0.01" min="0" max="1" id="fl_pf" value="'+esc(l.powerFactor)+'">'+
+    '</div>'+
+
+    '<div class="muted" id="amountLabel" style="font-weight:600;margin:10px 0 3px">'+(isElec?d.amountLabelElec:d.amountLabelGeneric)+'</div>'+
+    '<div class="grid3"><div><label>'+d.min+'</label><input type="number" id="fl_min" value="'+esc(l.min)+'"></div>'+
+    '<div><label>'+d.normal+'</label><input type="number" id="fl_normal" value="'+esc(l.normal)+'"></div>'+
+    '<div><label>'+d.max+'</label><input type="number" id="fl_max" value="'+esc(l.max)+'"></div></div>'+
+    '<div id="unitWrap" style="display:'+(isElec?"none":"block")+'"><label>'+d.unit+'</label><select id="fl_unit">'+unitSelectOptions(l.unit)+'</select></div>'+
+
+    '<label>'+d.mode+'</label><input id="fl_mode" list="modeSuggestions_fl" value="'+esc(l.mode)+'"><datalist id="modeSuggestions_fl">'+allKnownModes().map(function(m){return '<option value="'+esc(m)+'">';}).join("")+'</datalist>'+
+    '<label>'+d.quality+'</label><input id="fl_quality" value="'+esc(l.quality)+'">'+
+    '<div class="muted" style="margin-top:10px;font-weight:600">'+d.storageSec+'</div>'+
+    '<div class="grid3"><div><label>'+d.storageTemp+'</label><input id="fl_stemp" value="'+esc(l.storageTemp)+'"></div>'+
+    '<div><label>'+d.storageHumidity+'</label><input id="fl_shum" value="'+esc(l.storageHumidity)+'"></div>'+
+    '<div><label>'+d.storagePressure+'</label><input id="fl_spress" value="'+esc(l.storagePressure)+'"></div></div>'+
+    '<div class="grid2"><div><label>'+d.storageCapacity+'</label><input id="fl_scap" value="'+esc(l.storageCapacity)+'"></div>'+
+    '<div><label>'+d.storageLocation+'</label><input id="fl_sloc" value="'+esc(l.storageLocation)+'"></div></div>'+
+    '<label>'+d.lineNotes+'</label><textarea id="fl_notes" rows="2">'+esc(l.notes)+'</textarea>'+
+    '<div class="formbtns"><button class="primary" id="saveLine" data-tag="'+tag.id+'" data-line="'+(line?line.id:"")+'">'+d.save+'</button><button class="secondary" id="cancelLine">'+d.cancel+'</button></div>'+
+    '</div>';
+}
+
+window.toggleElecFields=function(sel){
+  var box=sel.closest(".formbox");
+  var isElec=sel.value==="elec";
+  var d=t();
+  var ew=box.querySelector("#elecWrap"); if(ew)ew.style.display=isElec?"block":"none";
+  var uw=box.querySelector("#unitWrap"); if(uw)uw.style.display=isElec?"none":"block";
+  var al=box.querySelector("#amountLabel"); if(al)al.textContent=isElec?d.amountLabelElec:d.amountLabelGeneric;
+};
+
+window.applyPreset=function(sel){
+  var box=sel.closest(".formbox");
+  var d=t();
+  var hint=box.querySelector("#presetHint");
+  if(sel.value===""){if(hint)hint.textContent="";return;}
+  var pr=COMPONENT_PRESETS[parseInt(sel.value,10)];
+  if(!pr)return;
+  var typeSel=box.querySelector("#fl_type");
+  typeSel.value=pr.type;
+  window.toggleElecFields(typeSel);
+  if(pr.type==="elec"){
+    var acdcSel=box.querySelector("#fl_acdc");if(acdcSel)acdcSel.value=pr.acdc||"ac";
+    var phasesSel=box.querySelector("#fl_phases");if(phasesSel)phasesSel.value=pr.phases||"3";
+    var voltInp=box.querySelector("#fl_voltage");if(voltInp&&pr.voltages)voltInp.value=pr.voltages[0];
+    var freqInp=box.querySelector("#fl_freq");if(freqInp)freqInp.value=(pr.acdc==="dc")?"":(pr.freqs?pr.freqs[0]:"50");
+  }
+  var hints=[];
+  if(pr.voltages&&pr.voltages.length>1)hints.push((state.lang==="no"?"Spenning: ":"Voltage: ")+pr.voltages.join("V, ")+"V");
+  if(pr.freqs&&pr.freqs.length>1)hints.push((state.lang==="no"?"Frekvens: ":"Frequency: ")+pr.freqs.join("Hz, ")+"Hz");
+  if(pr.note)hints.push(pr.note);
+  if(hint)hint.textContent=hints.length?d.presetOtherValues+" "+hints.join(" · "):"";
+};
+
+function bindLibraryEvents(){
+  var btnNew=document.getElementById("btnNewTag");
+  if(btnNew)btnNew.onclick=function(){state.editingTagId="__new__";state.addingLineForTag=null;state.editingLineFor=null;renderLibrary();};
+
+  document.querySelectorAll("[data-editTag]").forEach(function(b){b.onclick=function(){state.editingTagId=b.getAttribute("data-editTag");renderLibrary();};});
+  document.querySelectorAll("[data-delTag]").forEach(function(b){b.onclick=function(){
+    var id=b.getAttribute("data-delTag");
+    if(confirm(state.lang==="no"?"Slette denne taggen?":"Delete this tag?")){
+      state.tags=state.tags.filter(function(x){return x.id!==id;});
+      state.projects.forEach(function(p){p.tagLinks=p.tagLinks.filter(function(l){return l.tagId!==id;});});
+      renderLibrary();
+    }
+  };});
+
+  var saveTagBtn=document.getElementById("saveTag");
+  if(saveTagBtn)saveTagBtn.onclick=function(){
+    var id=saveTagBtn.getAttribute("data-id");
+    var vals={tagNo:val("f_tagNo"),name:val("f_tagName"),supplier:val("f_supplier"),spec:val("f_spec"),notes:val("f_notes"),
+      assembly:val("f_assembly"),component:val("f_component"),discipline:val("f_discipline"),operatingMode:val("f_opMode"),
+      location:val("f_location"),dataOwner:val("f_dataOwner"),remarks:val("f_remarks")};
+    if(!vals.tagNo||!vals.name){alert(state.lang==="no"?"Tag-nummer og navn er påkrevd.":"Tag number and name are required.");return;}
+    if(id){var tg=findTag(id);Object.assign(tg,vals);}
+    else{state.tags.push(Object.assign({id:uid(),lines:[]},vals));}
+    state.editingTagId=null;renderLibrary();
+  };
+  var cancelTagBtn=document.getElementById("cancelTag");
+  if(cancelTagBtn)cancelTagBtn.onclick=function(){state.editingTagId=null;renderLibrary();};
+
+  document.querySelectorAll("[data-addLine]").forEach(function(b){b.onclick=function(){state.addingLineForTag=b.getAttribute("data-addLine");state.editingLineFor=null;renderLibrary();};});
+  document.querySelectorAll("[data-editLine]").forEach(function(b){b.onclick=function(){
+    var parts=b.getAttribute("data-editLine").split("|");
+    state.editingLineFor={tagId:parts[0],lineId:parts[1]};state.addingLineForTag=null;renderLibrary();
+  };});
+  document.querySelectorAll("[data-delLine]").forEach(function(b){b.onclick=function(){
+    var parts=b.getAttribute("data-delLine").split("|");
+    var tag=findTag(parts[0]);
+    if(confirm(state.lang==="no"?"Slette denne forbrukslinjen?":"Delete this consumption line?")){
+      tag.lines=tag.lines.filter(function(x){return x.id!==parts[1];});
+      renderLibrary();
+    }
+  };});
+
+  var saveLineBtn=document.getElementById("saveLine");
+  if(saveLineBtn)saveLineBtn.onclick=function(){
+    var tagId=saveLineBtn.getAttribute("data-tag");
+    var lineId=saveLineBtn.getAttribute("data-line");
+    var tag=findTag(tagId);
+    var vals={type:val("fl_type"),contInt:val("fl_contInt"),min:val("fl_min"),normal:val("fl_normal"),max:val("fl_max"),
+      unit:val("fl_type")==="elec"?"A":val("fl_unit"),mode:val("fl_mode"),quality:val("fl_quality"),
+      acdc:val("fl_acdc")||"ac",phases:val("fl_phases")||"3",voltage:val("fl_voltage"),freq:val("fl_freq"),powerFactor:val("fl_pf"),
+      storageTemp:val("fl_stemp"),storageHumidity:val("fl_shum"),
+      storagePressure:val("fl_spress"),storageCapacity:val("fl_scap"),storageLocation:val("fl_sloc"),notes:val("fl_notes")};
+    if(lineId){Object.assign(findLine(tag,lineId),vals);}
+    else{tag.lines.push(Object.assign({id:uid()},vals));}
+    state.addingLineForTag=null;state.editingLineFor=null;renderLibrary();
+  };
+  var cancelLineBtn=document.getElementById("cancelLine");
+  if(cancelLineBtn)cancelLineBtn.onclick=function(){state.addingLineForTag=null;state.editingLineFor=null;renderLibrary();};
+}
+
+function val(id){var e=document.getElementById(id);return e?e.value.trim():"";}
+
+/* ---------- PROJECTS ---------- */
+
+function renderProjects(){
+  var d=t();
+  var html='<div class="row"><h3 style="margin:0">'+d.tabProjects+'</h3><button class="primary" id="btnNewProject">+ '+d.newProject+'</button></div>';
+
+  if(state.editingTagId==="__newproject__"){
+    html+='<div class="formbox">'+
+      '<label>'+d.projectName+'</label><input id="fp_name" value="">'+
+      '<label>'+d.customer+'</label><input id="fp_customer" value="">'+
+      '<div class="formbtns"><button class="primary" id="saveProject">'+d.save+'</button><button class="secondary" id="cancelProject">'+d.cancel+'</button></div>'+
+      '</div>';
+  }
+
+  if(state.projects.length===0){
+    html+='<div class="card empty">'+d.emptyProjects+'</div>';
+  } else {
+    state.projects.forEach(function(p){
+      var open=state.expandedProject===p.id;
+      html+='<div class="card">';
+      html+='<div class="row" style="cursor:pointer" data-toggleProject="'+p.id+'"><div><div style="font-weight:600">'+esc(p.name)+'</div>'+(p.customer?'<div class="muted">'+esc(p.customer)+'</div>':'')+'</div><div class="muted">'+p.tagLinks.length+' '+ (state.lang==="no"?"linjer":"lines") +'</div></div>';
+      if(open){
+        html+='<div class="sys-fields"><div class="muted" style="font-weight:600;margin-bottom:6px">'+d.systemLevel+'</div>'+
+          '<label>'+d.sysCapacity+'</label><input id="fp_sysCap" value="'+esc(p.sysCapacity)+'">'+
+          '<label>'+d.sysMaxLoad+'</label><input id="fp_sysMax" value="'+esc(p.sysMaxLoad)+'">'+
+          '<label>'+d.sysChar+'</label><input id="fp_sysChar" value="'+esc(p.sysChar)+'">'+
+          '<div class="flexend"><button class="secondary" id="saveSysFields" data-pid="'+p.id+'">'+d.save+'</button></div></div>';
+
+        html+='<div style="margin-top:12px"><div class="row"><div class="muted" style="font-weight:600">'+d.assignTags+'</div>'+
+          '<button class="secondary" id="btnAddTags" data-pid="'+p.id+'">+ '+d.addTagsFromLibrary+'</button></div>';
+
+        if(state.editingLineFor==="__pickTags__"){
+          html+=tagPickerHtml(p);
+        }
+
+        if(p.tagLinks.length===0){
+          html+='<div class="muted" style="padding:6px 0">'+d.noTagsAssigned+'</div>';
+        } else {
+          p.tagLinks.forEach(function(tl){
+            var tag=findTag(tl.tagId);
+            if(!tag)return;
+            var line=findLine(tag,tl.lineId);
+            if(!line)return;
+            var ov=tl.overrides||{};
+            var isOverridden=Object.keys(ov).length>0;
+            var eff={min:ov.min!==undefined?ov.min:line.min,normal:ov.normal!==undefined?ov.normal:line.normal,max:ov.max!==undefined?ov.max:line.max,unit:ov.unit!==undefined?ov.unit:line.unit,mode:ov.mode!==undefined?ov.mode:line.mode};
+            var key=tl.tagId+"|"+tl.lineId;
+            var cdProj=consumptionDisplay(line,eff);
+            var treeOpts='<option value="">'+d.structUnassigned+'</option>'+(p.structureTree||[]).map(function(n){return '<option value="'+n.id+'"'+(tl.structureNodeId===n.id?" selected":"")+'>'+esc(n.name)+'</option>';}).join("");
+            html+='<div class="line-item"><div class="row"><div><span class="tagno">'+esc(tag.tagNo)+'</span> '+esc(typeLabel(line.type))+
+              '<div class="muted">'+cdProj.text+(eff.mode?' · '+esc(modeLabel(eff.mode)):'')+'</div>'+
+              '<select data-assignNode="'+p.id+'|'+key+'" style="margin-top:4px;font-size:11px;padding:4px 6px">'+treeOpts+'</select></div>'+
+              '<div style="text-align:right"><span class="pill'+(isOverridden?" override":"")+'">'+(isOverridden?d.overrideVal:d.useLibVal)+'</span><br>'+
+              '<button class="ghost" data-toggleOverride="'+p.id+'|'+key+'">'+(state.editingLineFor2===key?d.cancel:d.overrideBtn)+'</button> '+
+              (isOverridden?'<button class="ghost" data-resetOverride="'+p.id+'|'+key+'">'+d.resetOverride+'</button> ':'')+
+              '<button class="danger-btn" data-removeTagLink="'+p.id+'|'+key+'">'+d.del+'</button></div></div>';
+            if(state.overrideFormFor===p.id+"|"+key){
+              html+=overrideFormHtml(p,tl,line);
+            }
+            html+='</div>';
+          });
+        }
+        html+='</div>';
+      }
+      html+='</div>';
+    });
+  }
+  document.getElementById("tab-projects").innerHTML=html;
+  bindProjectEvents();
+}
+
+function tagPickerHtml(p){
+  var d=t();
+  var html='<div class="formbox">';
+  state.tags.forEach(function(tag){
+    tag.lines.forEach(function(line){
+      var already=p.tagLinks.some(function(tl){return tl.tagId===tag.id&&tl.lineId===line.id;});
+      var key=tag.id+"__"+line.id;
+      html+='<div class="chk-row"><input type="checkbox" id="pick_'+key+'" data-picktag="'+tag.id+'" data-pickline="'+line.id+'"'+(already?" checked disabled":"")+'>'+
+        '<label for="pick_'+key+'" style="margin:0;font-weight:400;font-size:13px"><span class="tagno">'+esc(tag.tagNo)+'</span> '+esc(typeLabel(line.type))+'</label></div>';
+    });
+  });
+  html+='<div class="formbtns"><button class="primary" id="confirmPickTags" data-pid="'+p.id+'">'+d.save+'</button><button class="secondary" id="cancelPickTags">'+d.cancel+'</button></div></div>';
+  return html;
+}
+
+function overrideFormHtml(p,tl,line){
+  var d=t();
+  var eff=effLine(line,tl);
+  var isElec=line.type==="elec";
+  return '<div class="formbox">'+
+    '<div class="grid3"><div><label>'+d.min+'</label><input id="fo_min" value="'+esc(eff.min)+'"></div>'+
+    '<div><label>'+d.normal+'</label><input id="fo_normal" value="'+esc(eff.normal)+'"></div>'+
+    '<div><label>'+d.max+'</label><input id="fo_max" value="'+esc(eff.max)+'"></div></div>'+
+    (isElec?
+      '<div class="grid2"><div><label>'+d.voltage+'</label><input type="number" id="fo_voltage" value="'+esc(eff.voltage)+'"></div>'+
+      '<div><label>'+d.powerFactor+'</label><input type="number" step="0.01" id="fo_pf" value="'+esc(eff.powerFactor)+'"></div></div>'+
+      '<div class="grid2"><div><label>'+d.acdc+'</label><select id="fo_acdc"><option value="ac"'+(eff.acdc!=="dc"?" selected":"")+'>'+d.ac+'</option><option value="dc"'+(eff.acdc==="dc"?" selected":"")+'>'+d.dc+'</option></select></div>'+
+      '<div><label>'+d.phases+'</label><select id="fo_phases"><option value="1"'+(eff.phases==="1"?" selected":"")+'>'+d.onePhase+'</option><option value="3"'+(eff.phases!=="1"?" selected":"")+'>'+d.threePhase+'</option></select></div></div>'
+      :'<div class="grid2"><div><label>'+d.unit+'</label><select id="fo_unit">'+unitSelectOptions(eff.unit)+'</select></div>'+
+      '<div>'+modeInputHtml("fo_mode",eff.mode,"modeSuggestions_fo")+'</div></div>')+
+    (isElec?'<div>'+modeInputHtml("fo_mode",eff.mode,"modeSuggestions_fo")+'</div>':'')+
+    '<div class="formbtns"><button class="primary" id="saveOverride" data-pid="'+p.id+'" data-tid="'+tl.tagId+'" data-lid="'+tl.lineId+'">'+d.save+'</button><button class="secondary" id="cancelOverrideForm">'+d.cancel+'</button></div>'+
+    '</div>';
+}
+
+function bindProjectEvents(){
+  document.querySelectorAll("[data-assignNode]").forEach(function(sel){sel.onchange=function(){
+    var parts=sel.getAttribute("data-assignNode").split("|");
+    var p=findProject(parts[0]);
+    var tl=p.tagLinks.find(function(x){return x.tagId===parts[1]&&x.lineId===parts[2];});
+    if(tl)tl.structureNodeId=sel.value||null;
+    renderProjects();
+  };});
+  var btnNewProject=document.getElementById("btnNewProject");
+  if(btnNewProject)btnNewProject.onclick=function(){state.editingTagId="__newproject__";renderProjects();};
+
+  var saveProjectBtn=document.getElementById("saveProject");
+  if(saveProjectBtn)saveProjectBtn.onclick=function(){
+    var name=val("fp_name");
+    if(!name){alert(state.lang==="no"?"Prosjektnavn er påkrevd.":"Project name is required.");return;}
+    var p={id:uid(),name:name,customer:val("fp_customer"),sysCapacity:"",sysMaxLoad:"",sysChar:"",
+      companyName:"",docNo:"",revision:"A",docDate:"",preparedBy:"",purpose:"",description:"",supplier:"",logoDataUrl:"",
+      assumptions:[],openItems:[],references:[],revisions:[],utilityRegister:[],products:[],utilityRequirements:[],dataQuality:[],
+      operatingModes:[],loadCases:[],structureTree:[],tagLinks:[]};
+    state.projects.push(p);
+    state.editingTagId=null;state.expandedProject=p.id;renderProjects();
+  };
+  var cancelProjectBtn=document.getElementById("cancelProject");
+  if(cancelProjectBtn)cancelProjectBtn.onclick=function(){state.editingTagId=null;renderProjects();};
+
+  document.querySelectorAll("[data-toggleProject]").forEach(function(el){el.onclick=function(){
+    var id=el.getAttribute("data-toggleProject");
+    state.expandedProject=state.expandedProject===id?null:id;
+    state.editingLineFor=null;state.overrideFormFor=null;
+    renderProjects();
+  };});
+
+  var saveSysBtn=document.getElementById("saveSysFields");
+  if(saveSysBtn)saveSysBtn.onclick=function(){
+    var p=findProject(saveSysBtn.getAttribute("data-pid"));
+    p.sysCapacity=val("fp_sysCap");p.sysMaxLoad=val("fp_sysMax");p.sysChar=val("fp_sysChar");
+    renderProjects();
+  };
+
+  var btnAddTags=document.getElementById("btnAddTags");
+  if(btnAddTags)btnAddTags.onclick=function(){state.editingLineFor="__pickTags__";renderProjects();};
+
+  var confirmPickBtn=document.getElementById("confirmPickTags");
+  if(confirmPickBtn)confirmPickBtn.onclick=function(){
+    var p=findProject(confirmPickBtn.getAttribute("data-pid"));
+    document.querySelectorAll("[data-picktag]:checked:not(:disabled)").forEach(function(cb){
+      p.tagLinks.push({tagId:cb.getAttribute("data-picktag"),lineId:cb.getAttribute("data-pickline"),overrides:{}});
+    });
+    state.editingLineFor=null;renderProjects();
+  };
+  var cancelPickBtn=document.getElementById("cancelPickTags");
+  if(cancelPickBtn)cancelPickBtn.onclick=function(){state.editingLineFor=null;renderProjects();};
+
+  document.querySelectorAll("[data-removeTagLink]").forEach(function(b){b.onclick=function(){
+    var parts=b.getAttribute("data-removeTagLink").split("|");
+    var p=findProject(parts[0]);
+    var tid=parts[1],lid=parts[2];
+    p.tagLinks=p.tagLinks.filter(function(tl){return !(tl.tagId===tid&&tl.lineId===lid);});
+    renderProjects();
+  };});
+
+  document.querySelectorAll("[data-toggleOverride]").forEach(function(b){b.onclick=function(){
+    var parts=b.getAttribute("data-toggleOverride").split("|");
+    var key=parts[0]+"|"+parts[1]+"|"+parts[2];
+    state.overrideFormFor=state.overrideFormFor===key?null:key;
+    renderProjects();
+  };});
+
+  document.querySelectorAll("[data-resetOverride]").forEach(function(b){b.onclick=function(){
+    var parts=b.getAttribute("data-resetOverride").split("|");
+    var p=findProject(parts[0]);
+    var tl=p.tagLinks.find(function(x){return x.tagId===parts[1]&&x.lineId===parts[2];});
+    tl.overrides={};
+    renderProjects();
+  };});
+
+  var saveOverrideBtn=document.getElementById("saveOverride");
+  if(saveOverrideBtn)saveOverrideBtn.onclick=function(){
+    var p=findProject(saveOverrideBtn.getAttribute("data-pid"));
+    var tid=saveOverrideBtn.getAttribute("data-tid"),lid=saveOverrideBtn.getAttribute("data-lid");
+    var tl=p.tagLinks.find(function(x){return x.tagId===tid&&x.lineId===lid;});
+    var isElecForm=document.getElementById("fo_voltage")!==null;
+    var ov={min:val("fo_min"),normal:val("fo_normal"),max:val("fo_max"),mode:val("fo_mode")};
+    if(isElecForm){ov.voltage=val("fo_voltage");ov.powerFactor=val("fo_pf");ov.acdc=val("fo_acdc");ov.phases=val("fo_phases");}
+    else{ov.unit=val("fo_unit");}
+    tl.overrides=ov;
+    state.overrideFormFor=null;renderProjects();
+  };
+  var cancelOverrideBtn=document.getElementById("cancelOverrideForm");
+  if(cancelOverrideBtn)cancelOverrideBtn.onclick=function(){state.overrideFormFor=null;renderProjects();};
+}
+
+/* ---------- DOCUMENT ---------- */
+
+function effLine(line,tl){
+  var ov=(tl&&tl.overrides)||{};
+  return {min:ov.min!==undefined?ov.min:line.min,normal:ov.normal!==undefined?ov.normal:line.normal,
+    max:ov.max!==undefined?ov.max:line.max,unit:ov.unit!==undefined?ov.unit:line.unit,mode:ov.mode!==undefined?ov.mode:line.mode,
+    voltage:ov.voltage!==undefined?ov.voltage:line.voltage,acdc:ov.acdc!==undefined?ov.acdc:line.acdc,
+    phases:ov.phases!==undefined?ov.phases:line.phases,powerFactor:ov.powerFactor!==undefined?ov.powerFactor:line.powerFactor};
+}
+
+function fmtNum(n){if(n===null||n===undefined||n===""||isNaN(n))return "";return String(Math.round(n*100)/100);}
+
+function calcPower(line,eff){
+  if(line.type!=="elec")return null;
+  eff=eff||{};
+  var V=parseFloat(eff.voltage!==undefined?eff.voltage:line.voltage);
+  if(!V||isNaN(V))return null;
+  var acdc=(eff.acdc!==undefined?eff.acdc:line.acdc)||"ac";
+  var phases=(eff.phases!==undefined?eff.phases:line.phases)||"3";
+  function num(x){var n=parseFloat(x);return isNaN(n)?null:n;}
+  function calcOne(Iraw){
+    var I=num(Iraw);
+    if(I===null)return null;
+    var s;
+    if(acdc==="dc"){s=V*I;}
+    else if(phases==="3"){s=Math.sqrt(3)*V*I;}
+    else{s=V*I;}
+    return s/1000;
+  }
+  var sMin=calcOne(eff.min),sNorm=calcOne(eff.normal),sMax=calcOne(eff.max);
+  var pf=num(eff.powerFactor!==undefined?eff.powerFactor:line.powerFactor);
+  function act(s){return (s!==null&&pf!==null)?s*pf:null;}
+  var formula;
+  if(acdc==="dc")formula="P = V × I";
+  else if(phases==="3")formula="S = √3 × V × I"+(pf!==null?" ; P = S × cosφ":"");
+  else formula="S = V × I"+(pf!==null?" ; P = S × cosφ":"");
+  return {dc:acdc==="dc",phases:phases,s:{min:sMin,normal:sNorm,max:sMax},
+    p:pf!==null?{min:act(sMin),normal:act(sNorm),max:act(sMax)}:null,pf:pf,formula:formula};
+}
+
+function consumptionDisplay(line,eff){
+  var calc=calcPower(line,eff);
+  if(calc){
+    var unitLbl=calc.dc?"kW":"kVA";
+    var text=fmtNum(calc.s.min)+" / "+fmtNum(calc.s.normal)+" / "+fmtNum(calc.s.max)+" "+unitLbl;
+    if(calc.p)text+=" (P "+fmtNum(calc.p.min)+"/"+fmtNum(calc.p.normal)+"/"+fmtNum(calc.p.max)+" kW)";
+    var detail=(eff.voltage!==undefined?eff.voltage:line.voltage)+"V"+(calc.dc?" DC":" AC "+(calc.phases==="3"?"3-fas":"1-fas"))+", "+
+      (eff.normal||eff.max||eff.min||"")+"A"+(calc.pf!==null?", cosφ "+calc.pf:"")+" · "+calc.formula;
+    return {text:text,detail:detail,calc:calc};
+  }
+  return {text:esc(eff.min)+" / "+esc(eff.normal)+" / "+esc(eff.max)+" "+esc(eff.unit),detail:null,calc:null};
+}
+
+function assemblySubtotal(p,tagsInGroup){
+  var ids={};tagsInGroup.forEach(function(tg){ids[tg.id]=true;});
+  var elecAC=0,elecDC=0,hyd=0,hydUnit="",any={ac:false,dc:false,hyd:false};
+  p.tagLinks.forEach(function(tl){
+    if(!ids[tl.tagId])return;
+    var tag=findTag(tl.tagId);if(!tag)return;
+    var line=findLine(tag,tl.lineId);if(!line)return;
+    var eff=effLine(line,tl);
+    if(line.type==="elec"){
+      var calc=calcPower(line,eff);
+      if(calc&&calc.s.max!==null){
+        if(calc.dc){elecDC+=calc.s.max;any.dc=true;}else{elecAC+=calc.s.max;any.ac=true;}
+      } else if(eff.max){
+        var nE=parseFloat(eff.max);
+        if(!isNaN(nE)){
+          var uE=(eff.unit||"").toLowerCase();
+          var kW=uE==="va"||uE==="w"?nE/1000:nE;
+          if(line.acdc==="dc"){elecDC+=kW;any.dc=true;}else{elecAC+=kW;any.ac=true;}
+        }
+      }
+    } else if(line.type==="hyd"&&eff.max){
+      var n=parseFloat(eff.max);if(!isNaN(n)){hyd+=n;hydUnit=eff.unit;any.hyd=true;}
+    }
+  });
+  return {elecAC:any.ac?elecAC:0,elecDC:any.dc?elecDC:0,hyd:any.hyd?hyd:0,hydUnit:hydUnit};
+}
+
+function nodeChildren(tree,parentId){return (tree||[]).filter(function(n){return n.parentId===parentId;});}
+
+function subtreeTagLinks(p,nodeId){
+  var ids={};
+  function collect(id){ids[id]=true;nodeChildren(p.structureTree,id).forEach(function(c){collect(c.id);});}
+  collect(nodeId);
+  return p.tagLinks.filter(function(tl){return tl.structureNodeId&&ids[tl.structureNodeId];});
+}
+
+function nodeSubtotal(p,nodeId){
+  var links=subtreeTagLinks(p,nodeId);
+  var elecAC=0,elecDC=0,hyd=0,hydUnit="",any={ac:false,dc:false,hyd:false};
+  links.forEach(function(tl){
+    var tag=findTag(tl.tagId);if(!tag)return;
+    var line=findLine(tag,tl.lineId);if(!line)return;
+    var eff=effLine(line,tl);
+    if(line.type==="elec"){
+      var calc=calcPower(line,eff);
+      if(calc&&calc.s.max!==null){if(calc.dc){elecDC+=calc.s.max;any.dc=true;}else{elecAC+=calc.s.max;any.ac=true;}}
+      else if(eff.max){var n=parseFloat(eff.max);if(!isNaN(n)){var u=(eff.unit||"").toLowerCase();var kW=(u==="va"||u==="w")?n/1000:n;if(line.acdc==="dc"){elecDC+=kW;any.dc=true;}else{elecAC+=kW;any.ac=true;}}}
+    } else if(line.type==="hyd"&&eff.max){
+      var n2=parseFloat(eff.max);if(!isNaN(n2)){hyd+=n2;hydUnit=eff.unit;any.hyd=true;}
+    }
+  });
+  return {elecAC:any.ac?elecAC:0,elecDC:any.dc?elecDC:0,hyd:any.hyd?hyd:0,hydUnit:hydUnit};
+}
+
+function structFormHtml(node,tree){
+  var d=t();
+  node=node||{name:"",parentId:null};
+  var opts='<option value="">'+d.structNoParent+'</option>'+(tree||[]).filter(function(n){return n.id!==(node.id||"");}).map(function(n){return '<option value="'+n.id+'"'+(n.id===node.parentId?" selected":"")+'>'+esc(n.name)+'</option>';}).join("");
+  return '<div class="formbox"><label>'+d.structNodeName+'</label><input id="st_name" value="'+esc(node.name)+'">'+
+    '<label>'+d.structParent+'</label><select id="st_parent">'+opts+'</select>'+
+    '<div class="formbtns"><button class="primary" data-structSave="__PID__|'+(node.id||"")+'">'+d.save+'</button><button class="secondary" data-structCancel="1">'+d.cancel+'</button></div></div>';
+}
+
+function levelLabel(depth,d){
+  var labels=[d.structLevelProduct,d.structLevelAssembly,d.structLevelSubassembly,d.structLevelComponent];
+  return labels[depth]||d.structLevelComponent;
+}
+
+function renderTreeNodeHtmlRec(p,node,depth){
+  var d=t();
+  if(state.structEditing===p.id+"|"+node.id){
+    return '<div style="padding-left:'+(depth*14)+'px;margin-top:4px">'+structFormHtml(node,p.structureTree).replace(/__PID__/g,p.id)+'</div>'+
+      nodeChildren(p.structureTree,node.id).map(function(c){return renderTreeNodeHtmlRec(p,c,depth+1);}).join("");
+  }
+  var directTagLinks=p.tagLinks.filter(function(tl){return tl.structureNodeId===node.id;});
+  var sub=nodeSubtotal(p,node.id);
+  var html='<div class="tree-node" data-nodeId="'+node.id+'" style="margin-left:'+(depth*14)+'px">';
+  html+='<div class="row"><div><span class="drag-handle" data-dragHandle="'+node.id+'">⠿</span><span class="tree-level-badge">'+esc(levelLabel(depth,d))+'</span><b>'+esc(node.name)+'</b></div>'+
+    '<div style="white-space:nowrap"><button class="ghost" data-structEdit="'+p.id+'|'+node.id+'">'+d.edit+'</button> <button class="danger-btn" data-structDel="'+p.id+'|'+node.id+'">'+d.del+'</button></div></div>';
+  var sumParts=[];
+  if(sub.elecAC)sumParts.push("AC: "+fmtNum(sub.elecAC)+" kVA");
+  if(sub.elecDC)sumParts.push("DC: "+fmtNum(sub.elecDC)+" kW");
+  if(sub.hyd)sumParts.push("Hyd: "+fmtNum(sub.hyd)+" "+sub.hydUnit);
+  if(sumParts.length)html+='<div class="muted">Σ (inkl. under-noder): '+sumParts.join(" · ")+'</div>';
+  var seenT={};
+  directTagLinks.forEach(function(tl){
+    var tag=findTag(tl.tagId);if(!tag||seenT[tag.id])return;seenT[tag.id]=true;
+    html+='<div class="muted">├ '+esc(tag.tagNo)+' ('+esc(tag.name)+')</div>';
+  });
+  html+='</div>';
+  nodeChildren(p.structureTree,node.id).forEach(function(child){html+=renderTreeNodeHtmlRec(p,child,depth+1);});
+  return html;
+}
+
+function renderStructureTreeCard(p){
+  var d=t();
+  var tree=p.structureTree||[];
+  var html='<div class="row"><div class="muted" style="font-weight:600">'+d.regStructureTree+'</div><button class="ghost" data-structAdd="'+p.id+'">+ '+d.structAddNode+'</button></div>';
+  if(state.structAdding===p.id)html+=structFormHtml(null,tree).replace(/__PID__/g,p.id);
+  var roots=nodeChildren(tree,null);
+  if(roots.length>0){
+    html+='<div class="muted" style="font-size:10.5px;margin:6px 0">'+d.structDragHint+'</div>';
+    html+='<div class="tree-root-drop" data-rootDrop="1">'+d.structRootDrop+'</div>';
+  }
+  if(roots.length===0&&state.structAdding!==p.id)html+='<div class="muted" style="padding:4px 0 8px">'+d.regEmpty+'</div>';
+  html+='<div data-structContainer="'+p.id+'">';
+  roots.forEach(function(n){html+=renderTreeNodeHtmlRec(p,n,0);});
+  html+='</div>';
+  var unassignedLinks=p.tagLinks.filter(function(tl){return !tl.structureNodeId;});
+  if(unassignedLinks.length){
+    var seenU={};var names=[];
+    unassignedLinks.forEach(function(tl){var tag=findTag(tl.tagId);if(tag&&!seenU[tag.id]){seenU[tag.id]=true;names.push(tag.tagNo);}});
+    html+='<div class="muted" style="margin-top:8px">'+d.structUnassigned+': '+esc(names.join(", "))+'</div>';
+  }
+  return html;
+}
+
+function bindStructureDragEvents(p,rerenderFn){
+  var container=document.querySelector('[data-structContainer="'+p.id+'"]');
+  if(!container)return;
+  var dragId=null;
+  function clearHighlights(){
+    document.querySelectorAll(".drop-target").forEach(function(x){x.classList.remove("drop-target");});
+  }
+  function isDescendant(ancestorId,candidateId){
+    var node=(p.structureTree||[]).find(function(n){return n.id===candidateId;});
+    while(node){
+      if(node.parentId===ancestorId)return true;
+      node=(p.structureTree||[]).find(function(n){return n.id===node.parentId;});
+    }
+    return false;
+  }
+  container.querySelectorAll("[data-dragHandle]").forEach(function(h){
+    h.onpointerdown=function(e){
+      e.preventDefault();
+      dragId=h.getAttribute("data-dragHandle");
+      var el=container.querySelector('[data-nodeId="'+dragId+'"]');
+      if(el)el.classList.add("dragging");
+      try{h.setPointerCapture(e.pointerId);}catch(err){}
+    };
+  });
+  var root=document.getElementById("tab-document")||document;
+  root.onpointermove=function(e){
+    if(!dragId)return;
+    clearHighlights();
+    var el=document.elementFromPoint(e.clientX,e.clientY);
+    var dropEl=el&&el.closest?el.closest("[data-nodeId],[data-rootDrop]"):null;
+    if(dropEl&&dropEl.getAttribute("data-nodeId")===dragId)dropEl=null;
+    if(dropEl)dropEl.classList.add("drop-target");
+  };
+  root.onpointerup=function(e){
+    if(!dragId)return;
+    var draggedId=dragId;dragId=null;
+    var el=document.elementFromPoint(e.clientX,e.clientY);
+    var dropEl=el&&el.closest?el.closest("[data-nodeId],[data-rootDrop]"):null;
+    clearHighlights();
+    var draggingEl=container.querySelector('[data-nodeId="'+draggedId+'"]');
+    if(draggingEl)draggingEl.classList.remove("dragging");
+    if(!dropEl)return;
+    var newParentId=dropEl.hasAttribute("data-rootDrop")?null:dropEl.getAttribute("data-nodeId");
+    if(newParentId===draggedId)return;
+    if(newParentId&&isDescendant(draggedId,newParentId)){alert(t().structCannotMoveIntoSelf);return;}
+    var node=(p.structureTree||[]).find(function(n){return n.id===draggedId;});
+    if(node&&node.parentId!==newParentId){node.parentId=newParentId;rerenderFn();}
+  };
+}
+
+function bindStructureEvents(rerenderFn){
+  document.querySelectorAll("[data-structAdd]").forEach(function(b){b.onclick=function(){state.structAdding=b.getAttribute("data-structAdd");state.structEditing=null;rerenderFn();};});
+  document.querySelectorAll("[data-structEdit]").forEach(function(b){b.onclick=function(){state.structEditing=b.getAttribute("data-structEdit");state.structAdding=null;rerenderFn();};});
+  document.querySelectorAll("[data-structCancel]").forEach(function(b){b.onclick=function(){state.structAdding=null;state.structEditing=null;rerenderFn();};});
+  document.querySelectorAll("[data-structDel]").forEach(function(b){b.onclick=function(){
+    var parts=b.getAttribute("data-structDel").split("|");
+    var p=findProject(parts[0]),nodeId=parts[1];
+    var hasChildren=(p.structureTree||[]).some(function(n){return n.parentId===nodeId;});
+    if(hasChildren){alert(t().structCannotDeleteHasChildren);return;}
+    p.structureTree=(p.structureTree||[]).filter(function(n){return n.id!==nodeId;});
+    p.tagLinks.forEach(function(tl){if(tl.structureNodeId===nodeId)tl.structureNodeId=null;});
+    rerenderFn();
+  };});
+  document.querySelectorAll("[data-structSave]").forEach(function(b){b.onclick=function(){
+    var parts=b.getAttribute("data-structSave").split("|");
+    var p=findProject(parts[0]),nodeId=parts[1];
+    var name=val("st_name");
+    if(!name){alert(state.lang==="no"?"Navn er påkrevd.":"Name is required.");return;}
+    var parentId=val("st_parent")||null;
+    p.structureTree=p.structureTree||[];
+    if(nodeId){
+      var existing=p.structureTree.find(function(n){return n.id===nodeId;});
+      if(existing){existing.name=name;existing.parentId=parentId;}
+    } else {
+      p.structureTree.push({id:uid(),name:name,parentId:parentId});
+    }
+    state.structAdding=null;state.structEditing=null;rerenderFn();
+  };});
+}
+
+function loadCaseDemand(p,lc){
+  var elecAC=0,elecDC=0,hyd=0,hydUnit="",any={ac:false,dc:false,hyd:false};
+  p.tagLinks.forEach(function(tl){
+    var tag=findTag(tl.tagId);if(!tag)return;
+    var line=findLine(tag,tl.lineId);if(!line)return;
+    var eff=effLine(line,tl);
+    if(!lc.modes||!lc.modes[eff.mode])return;
+    if(line.type==="elec"){
+      var calc=calcPower(line,eff);
+      if(calc&&calc.s.max!==null){if(calc.dc){elecDC+=calc.s.max;any.dc=true;}else{elecAC+=calc.s.max;any.ac=true;}}
+      else if(eff.max){
+        var nE2=parseFloat(eff.max);
+        if(!isNaN(nE2)){
+          var uE2=(eff.unit||"").toLowerCase();
+          var kW2=uE2==="va"||uE2==="w"?nE2/1000:nE2;
+          if(line.acdc==="dc"){elecDC+=kW2;any.dc=true;}else{elecAC+=kW2;any.ac=true;}
+        }
+      }
+    } else if(line.type==="hyd"&&eff.max){
+      var n=parseFloat(eff.max);if(!isNaN(n)){hyd+=n;hydUnit=eff.unit;any.hyd=true;}
+    }
+  });
+  return {elecAC:any.ac?elecAC:0,elecDC:any.dc?elecDC:0,hyd:any.hyd?hyd:0,hydUnit:hydUnit};
+}
+
+function lcFormHtml(lc,p){
+  var d=t();
+  lc=lc||{caseId:"",name:"",description:"",basis:"",modes:{}};
+  var modesInUse=projectModes(p);
+  return '<div class="formbox">'+
+    '<div class="grid2"><div><label>'+d.lcCaseId+'</label><input id="lc_caseId" value="'+esc(lc.caseId)+'"></div><div><label>'+d.lcName+'</label><input id="lc_name" value="'+esc(lc.name)+'"></div></div>'+
+    '<label>'+d.regDescription+'</label><input id="lc_description" value="'+esc(lc.description)+'">'+
+    '<label>'+d.lcBasis+'</label><input id="lc_basis" value="'+esc(lc.basis)+'">'+
+    '<div class="muted" style="margin-top:8px;font-weight:600">'+d.lcModesIncluded+'</div>'+
+    (modesInUse.length===0?'<div class="muted">'+(state.lang==="no"?"Ingen moduser i bruk i prosjektet ennå.":"No modes in use in the project yet.")+'</div>':'')+
+    modesInUse.map(function(m,i){return '<label style="display:flex;align-items:center;gap:6px;font-weight:400;margin:4px 0"><input type="checkbox" class="lcModeCb" id="lc_mode_cb_'+i+'" data-mode="'+esc(m)+'" style="width:auto"'+(lc.modes&&lc.modes[m]?" checked":"")+'>'+esc(modeLabel(m))+'</label>';}).join("")+
+    '<div class="formbtns"><button class="primary" data-lcSave="'+"__PID__"+'|'+(lc.id||"")+'">'+d.save+'</button><button class="secondary" data-lcCancel="1">'+d.cancel+'</button></div>'+
+    '</div>';
+}
+
+function renderLoadCasesCard(p){
+  var d=t();
+  var html='<div class="row"><div class="muted" style="font-weight:600">'+d.regLoadCases+'</div><button class="ghost" data-lcAdd="'+p.id+'">+ '+d.lcAdd+'</button></div>';
+  var cases=p.loadCases||[];
+  if(cases.length===0){
+    html+='<div class="muted" style="padding:4px 0 8px">'+d.lcNone+'</div>';
+  } else {
+    cases.forEach(function(lc){
+      if(state.lcEditing===p.id+"|"+lc.id){
+        html+=lcFormHtml(lc,p).replace(/__PID__/g,p.id);
+        return;
+      }
+      var demand=loadCaseDemand(p,lc);
+      var modeNames=lcModeNames(lc);
+      var sumParts=[];
+      if(demand.elecAC)sumParts.push(d.lcSumAC+": "+fmtNum(demand.elecAC)+" kVA");
+      if(demand.elecDC)sumParts.push(d.lcSumDC+": "+fmtNum(demand.elecDC)+" kW");
+      if(demand.hyd)sumParts.push(d.lcSumHyd+": "+fmtNum(demand.hyd)+" "+demand.hydUnit);
+      html+='<div class="line-item"><div class="row"><div><b>'+esc(lc.caseId)+'</b> '+esc(lc.name)+
+        '<div class="muted">'+esc(lc.description)+'</div>'+
+        '<div class="muted">'+d.lcModesIncluded+': '+esc(modeNames||"—")+'</div>'+
+        '<div class="muted"><b>'+d.lcCalcDemand+':</b> '+(sumParts.length?sumParts.join(" · "):"—")+'</div></div>'+
+        '<div style="white-space:nowrap"><button class="ghost" data-lcEdit="'+p.id+'|'+lc.id+'">'+d.edit+'</button> <button class="danger-btn" data-lcDel="'+p.id+'|'+lc.id+'">'+d.del+'</button></div></div></div>';
+    });
+  }
+  if(state.lcAdding===p.id){
+    html+=lcFormHtml(null,p).replace(/__PID__/g,p.id);
+  }
+  return html;
+}
+
+function bindLoadCaseEvents(rerenderFn){
+  document.querySelectorAll("[data-lcAdd]").forEach(function(b){b.onclick=function(){state.lcAdding=b.getAttribute("data-lcAdd");state.lcEditing=null;rerenderFn();};});
+  document.querySelectorAll("[data-lcEdit]").forEach(function(b){b.onclick=function(){state.lcEditing=b.getAttribute("data-lcEdit");state.lcAdding=null;rerenderFn();};});
+  document.querySelectorAll("[data-lcCancel]").forEach(function(b){b.onclick=function(){state.lcAdding=null;state.lcEditing=null;rerenderFn();};});
+  document.querySelectorAll("[data-lcDel]").forEach(function(b){b.onclick=function(){
+    var parts=b.getAttribute("data-lcDel").split("|");
+    var p=findProject(parts[0]);
+    p.loadCases=p.loadCases.filter(function(lc){return lc.id!==parts[1];});
+    rerenderFn();
+  };});
+  document.querySelectorAll("[data-lcSave]").forEach(function(b){b.onclick=function(){
+    var parts=b.getAttribute("data-lcSave").split("|");
+    var p=findProject(parts[0]),lcId=parts[1];
+    var modes={};document.querySelectorAll(".lcModeCb").forEach(function(cb){modes[cb.getAttribute("data-mode")]=cb.checked;});
+    var vals={caseId:val("lc_caseId"),name:val("lc_name"),description:val("lc_description"),basis:val("lc_basis"),modes:modes};
+    p.loadCases=p.loadCases||[];
+    if(lcId){
+      var existing=p.loadCases.find(function(lc){return lc.id===lcId;});
+      if(existing)Object.assign(existing,vals);
+    } else {
+      p.loadCases.push(Object.assign({id:uid()},vals));
+    }
+    state.lcAdding=null;state.lcEditing=null;rerenderFn();
+  };});
+}
+
+function capacityDemand(p,utilRow){
+  var total=0,unit="",any=false;
+  p.tagLinks.forEach(function(tl){
+    var tag=findTag(tl.tagId);if(!tag)return;
+    var line=findLine(tag,tl.lineId);if(!line)return;
+    var match=false;
+    if(utilRow.utilName==="elecAC"&&line.type==="elec"&&line.acdc!=="dc")match=true;
+    if(utilRow.utilName==="elecDC"&&line.type==="elec"&&line.acdc==="dc")match=true;
+    if(utilRow.utilName==="hydOil"&&line.type==="hyd")match=true;
+    if(utilRow.utilName==="coolWater"&&line.type==="cool")match=true;
+    if(utilRow.utilName==="instrAir"&&line.type==="air")match=true;
+    if(!match)return;
+    var eff=effLine(line,tl);
+    var calc=calcPower(line,eff);
+    if(calc&&calc.s.max!==null){total+=calc.s.max;unit=calc.dc?"kW":"kVA";any=true;}
+    else if(eff.max){var n=parseFloat(eff.max);if(!isNaN(n)){total+=n;unit=eff.unit;any=true;}}
+  });
+  return any?{total:total,unit:unit}:null;
+}
+
+function docStructureNodeHtml(p,d,parentId,depth){
+  var html="";
+  nodeChildren(p.structureTree,parentId).forEach(function(node){
+    var directTagLinks=p.tagLinks.filter(function(tl){return tl.structureNodeId===node.id;});
+    var sub=nodeSubtotal(p,node.id);
+    html+='<div style="padding-left:'+(depth*14)+'px;font-weight:700;margin-top:6px">'+esc(node.name)+'</div>';
+    var seenT={};
+    directTagLinks.forEach(function(tl){
+      var tag=findTag(tl.tagId);if(!tag||seenT[tag.id])return;seenT[tag.id]=true;
+      html+='<div style="padding-left:'+(depth*14+14)+'px">├ '+esc(tag.component||tag.name)+' ('+esc(tag.tagNo)+')</div>';
+    });
+    var subParts=[];
+    if(sub.elecAC)subParts.push("AC: "+fmtNum(sub.elecAC)+" kVA");
+    if(sub.elecDC)subParts.push("DC: "+fmtNum(sub.elecDC)+" kW");
+    if(sub.hyd)subParts.push("Hydraulikk: "+fmtNum(sub.hyd)+" "+sub.hydUnit);
+    if(subParts.length)html+='<div class="muted" style="padding-left:'+(depth*14+14)+'px;margin-top:2px">Σ (inkl. under-noder): '+subParts.join(" · ")+'</div>';
+    html+=docStructureNodeHtml(p,d,node.id,depth+1);
+  });
+  return html;
+}
+
+function docBodyHtml(p,d){
+  var html="";
+  html+='<div class="dochead"><div>'+
+    (p.logoDataUrl?'<img src="'+p.logoDataUrl+'" style="max-height:40px;max-width:160px;display:block;margin-bottom:4px">':'')+
+    '<div class="dochead-company">'+esc(p.companyName||"—")+'</div></div>';
+  html+='<table class="docmeta"><tr><td class="k">'+d.docNo+'</td><td>'+esc(p.docNo||"—")+'</td><td class="k">'+d.revision+'</td><td>'+esc(p.revision||"—")+'</td></tr>';
+  html+='<tr><td class="k">'+d.docDate+'</td><td>'+esc(p.docDate||"—")+'</td><td class="k">'+d.preparedBy+'</td><td>'+esc(p.preparedBy||"—")+'</td></tr></table></div>';
+
+  html+='<div class="doctitle">'+d.genTitle+'</div><div class="docsub">'+esc(p.name)+(p.customer?" · "+esc(p.customer):"")+'</div>';
+
+  if(p.purpose||p.description||p.supplier){
+    html+='<div class="muted" style="margin-bottom:10px">';
+    if(p.purpose)html+='<div><b>'+d.docPurpose+':</b> '+esc(p.purpose)+'</div>';
+    if(p.description)html+='<div><b>'+d.docDescription+':</b> '+esc(p.description)+'</div>';
+    if(p.supplier)html+='<div><b>'+d.docSupplier+':</b> '+esc(p.supplier)+'</div>';
+    html+='</div>';
+  }
+
+  html+='<div style="font-weight:600;font-size:12px;margin-bottom:4px">'+d.regDefinitions+'</div>';
+  html+='<div class="muted" style="margin-bottom:12px;font-size:10px">'+
+    '<div><b>'+d.defUtility+':</b> '+esc(d.defUtilityText)+'</div>'+
+    '<div><b>'+d.defConsumer+':</b> '+esc(d.defConsumerText)+'</div>'+
+    '<div><b>'+d.defDisciplineOwner+':</b> '+esc(d.defDisciplineOwnerText)+'</div></div>';
+
+  if(p.sysCapacity||p.sysMaxLoad||p.sysChar){
+    html+='<div class="muted" style="margin-bottom:12px">';
+    if(p.sysCapacity)html+='<div><b>'+d.sysCapacity+':</b> '+esc(p.sysCapacity)+'</div>';
+    if(p.sysMaxLoad)html+='<div><b>'+d.sysMaxLoad+':</b> '+esc(p.sysMaxLoad)+'</div>';
+    if(p.sysChar)html+='<div><b>'+d.sysChar+':</b> '+esc(p.sysChar)+'</div>';
+    html+='</div>';
+  }
+
+  if((p.structureTree||[]).length>0){
+    html+='<div style="font-weight:600;font-size:12px;margin-bottom:4px">'+d.regProductStructure+'</div>';
+    html+='<div style="margin-bottom:14px;font-size:10px">';
+    html+=docStructureNodeHtml(p,d,null,0);
+    html+='</div>';
+  } else if(p.tagLinks.length>0){
+    var seenTags2={};
+    var psRows=[];
+    p.tagLinks.forEach(function(tl){var tag=findTag(tl.tagId);if(tag&&!seenTags2[tag.id]){seenTags2[tag.id]=true;psRows.push(tag);}});
+    var byAssembly={};
+    var assemblyOrder=[];
+    psRows.forEach(function(tag){
+      var key=tag.assembly||d.unassigned;
+      if(!byAssembly[key]){byAssembly[key]=[];assemblyOrder.push(key);}
+      byAssembly[key].push(tag);
+    });
+    html+='<div style="font-weight:600;font-size:12px;margin-bottom:4px">'+d.regProductStructure+'</div>';
+    html+='<div style="margin-bottom:14px;font-size:10px">';
+    assemblyOrder.forEach(function(asmName){
+      html+='<div style="font-weight:700;margin-top:6px">'+esc(asmName)+'</div>';
+      byAssembly[asmName].forEach(function(tag){
+        html+='<div style="padding-left:14px">├ '+esc(tag.component||tag.name)+' ('+esc(tag.tagNo)+')</div>';
+      });
+      var sub=assemblySubtotal(p,byAssembly[asmName]);
+      var subParts=[];
+      if(sub.elecAC)subParts.push("AC: "+fmtNum(sub.elecAC)+" kVA");
+      if(sub.elecDC)subParts.push("DC: "+fmtNum(sub.elecDC)+" kW");
+      if(sub.hyd)subParts.push("Hydraulikk: "+fmtNum(sub.hyd)+" "+sub.hydUnit);
+      if(subParts.length)html+='<div class="muted" style="padding-left:14px;margin-top:2px">Σ '+subParts.join(" · ")+'</div>';
+    });
+    html+='</div>';
+  }
+
+  if(p.tagLinks.length>0){
+    var seenTags={};
+    var crRows=[];
+    p.tagLinks.forEach(function(tl){var tag=findTag(tl.tagId);if(tag&&!seenTags[tag.id]){seenTags[tag.id]=true;crRows.push(tag);}});
+    html+='<div style="font-weight:600;font-size:12px;margin-bottom:4px">'+d.regConsumerRegister+'</div>';
+    html+='<table class="doc" style="font-size:9px;margin-bottom:14px"><thead><tr><th>'+d.colTag+'</th><th>'+d.tagName+'</th><th>'+d.crAssembly+'</th><th>'+d.crComponent+'</th><th>'+d.crDiscipline+'</th><th>'+d.crOperatingMode+'</th><th>'+d.crLocation+'</th><th>'+d.crDataOwner+'</th></tr></thead><tbody>';
+    crRows.forEach(function(tag){
+      html+='<tr><td>'+esc(tag.tagNo)+'</td><td>'+esc(tag.name)+'</td><td>'+esc(tag.assembly)+'</td><td>'+esc(tag.component)+'</td><td>'+esc(tag.discipline)+'</td><td>'+esc(tag.operatingMode)+'</td><td>'+esc(tag.location)+'</td><td>'+esc(tag.dataOwner)+'</td></tr>';
+    });
+    html+='</tbody></table>';
+  }
+
+  if(p.tagLinks.length===0){
+    html+='<div class="muted">'+d.noRowsInDoc+'</div>';
+  } else {
+    html+='<div style="font-weight:600;font-size:12px;margin-bottom:4px">'+d.regRequiredConsumption+'</div>';
+    html+='<table class="doc" style="table-layout:fixed;width:100%"><colgroup><col style="width:13%"><col style="width:14%"><col style="width:11%"><col style="width:17%"><col style="width:10%"><col style="width:17%"><col style="width:18%"></colgroup>';
+    html+='<thead><tr><th>'+d.colTag+'</th><th>'+d.colType+'</th><th>'+d.colContInt+'</th><th>'+d.colConsumption+'</th><th>'+d.colMode+'</th><th>'+d.colQuality+'</th><th>'+d.colNotes+'</th></tr></thead><tbody>';
+    p.tagLinks.forEach(function(tl){
+      var tag=findTag(tl.tagId);if(!tag)return;
+      var line=findLine(tag,tl.lineId);if(!line)return;
+      var eff=effLine(line,tl);
+      var cdDoc=consumptionDisplay(line,eff);
+      var qualityCell=line.quality||"";
+      if(cdDoc.detail)qualityCell=qualityCell?qualityCell+" · "+cdDoc.detail:cdDoc.detail;
+      html+='<tr><td>'+esc(tag.tagNo)+'</td><td>'+esc(typeLabel(line.type))+'</td><td>'+esc(contIntLabel(line.contInt))+'</td><td>'+cdDoc.text+'</td><td>'+esc(modeLabel(eff.mode))+'</td><td>'+esc(qualityCell)+'</td><td>'+esc(line.notes)+'</td></tr>';
+    });
+    html+='</tbody></table>';
+  }
+  if(p.utilityRegister&&p.utilityRegister.length>0){
+    html+='<div style="font-weight:600;font-size:12px;margin:10px 0 4px">'+d.regCapacitySummary+'</div>';
+    html+='<table class="doc" style="font-size:9px;margin-bottom:14px"><thead><tr><th>'+d.utilId+'</th><th>'+d.utilName+'</th><th>'+d.capAvailable+'</th><th>'+d.capDemand+'</th><th>'+d.capMargin+'</th><th>'+d.regNotes+'</th></tr></thead><tbody>';
+    var utilLbl2={elecDC:d.utilElecDC,elecAC:d.utilElecAC,hydOil:d.utilHydOil,coolWater:d.utilCoolWater,instrAir:d.utilInstrAir,nitrogen:d.utilNitrogen,other:d.utilOther};
+    p.utilityRegister.forEach(function(u){
+      var demand=capacityDemand(p,u);
+      var avail=parseFloat(u.availCap);
+      var demandTxt=demand?fmtNum(demand.total)+" "+demand.unit:d.capNoData;
+      var marginTxt="";
+      if(demand&&!isNaN(avail)){marginTxt=fmtNum(avail-demand.total)+" "+(u.capacityUnit||demand.unit);}
+      html+='<tr><td>'+esc(u.utilId)+'</td><td>'+esc(utilLbl2[u.utilName]||u.utilName)+'</td><td>'+esc(u.availCap)+' '+esc(u.capacityUnit)+'</td><td>'+demandTxt+'</td><td>'+marginTxt+'</td><td>'+esc(u.remarks)+'</td></tr>';
+    });
+    html+='</tbody></table>';
+  }
+
+  if(p.loadCases&&p.loadCases.length>0){
+    html+='<div style="font-weight:600;font-size:12px;margin:10px 0 4px">'+d.regLoadCases+'</div>';
+    html+='<table class="doc" style="font-size:9px;margin-bottom:14px"><thead><tr><th>'+d.lcCaseId+'</th><th>'+d.lcName+'</th><th>'+d.lcModesIncluded+'</th><th>'+d.lcSumAC+'</th><th>'+d.lcSumDC+'</th><th>'+d.lcSumHyd+'</th><th>'+d.lcBasis+'</th></tr></thead><tbody>';
+    p.loadCases.forEach(function(lc){
+      var demand=loadCaseDemand(p,lc);
+      var modeNames=lcModeNames(lc);
+      html+='<tr><td>'+esc(lc.caseId)+'</td><td>'+esc(lc.name)+'</td><td>'+esc(modeNames)+'</td>'+
+        '<td>'+(demand.elecAC?fmtNum(demand.elecAC)+" kVA":"—")+'</td>'+
+        '<td>'+(demand.elecDC?fmtNum(demand.elecDC)+" kW":"—")+'</td>'+
+        '<td>'+(demand.hyd?fmtNum(demand.hyd)+" "+demand.hydUnit:"—")+'</td>'+
+        '<td>'+esc(lc.basis)+'</td></tr>';
+    });
+    html+='</tbody></table>';
+  }
+
+  html+=registersDocHtml(p,d);
+  html+='<div style="margin-top:10px;font-size:10px"><b>'+d.regTraceability+':</b> '+esc(d.traceText)+'</div>';
+  html+='<div class="docfoot">'+d.generatedBy+' · '+new Date().toLocaleDateString(state.lang==="no"?"nb-NO":"en-GB")+'</div>';
+  return html;
+}
+
+function buildDocxDoc(p,d){
+  var X=window.docx;
+  function txt(s,opts){opts=opts||{};return new X.TextRun(Object.assign({text:String(s==null?"":s)},opts));}
+  function para(children,opts){opts=opts||{};if(typeof children==="string")children=[txt(children)];return new X.Paragraph(Object.assign({children:children},opts));}
+  function heading(text,level){return new X.Paragraph({text:text,heading:level,spacing:{before:200,after:100}});}
+  function labelValue(label,value){return para([txt(label+": ",{bold:true}),txt(value||"—")]);}
+  function cellText(v){return new X.TableCell({children:[para(String(v==null?"":v))],margins:{top:60,bottom:60,left:80,right:80}});}
+  function headerCell(v){return new X.TableCell({shading:{fill:"EEF1F2"},children:[para([txt(v,{bold:true})])]},{margins:{top:60,bottom:60,left:80,right:80}});}
+  function dataTable(headers,rows){
+    var hdrRow=new X.TableRow({tableHeader:true,children:headers.map(headerCell)});
+    var bodyRows=rows.map(function(r){return new X.TableRow({children:r.map(cellText)});});
+    return new X.Table({width:{size:100,type:X.WidthType.PERCENTAGE},rows:[hdrRow].concat(bodyRows)});
+  }
+
+  var children=[];
+
+  if(p.logoDataUrl){
+    try{
+      var b64=p.logoDataUrl.split(",")[1];
+      var bin=atob(b64);var bytes=new Uint8Array(bin.length);
+      for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+      children.push(para([new X.ImageRun({data:bytes,transformation:{width:130,height:44}})]));
+    }catch(e){}
+  }
+  children.push(heading(p.companyName||"—",X.HeadingLevel.HEADING_3));
+  children.push(dataTable([d.docNo,d.revision,d.docDate,d.preparedBy],[[p.docNo,p.revision,p.docDate,p.preparedBy]]));
+  children.push(heading(d.genTitle,X.HeadingLevel.TITLE));
+  children.push(para(p.name+(p.customer?" · "+p.customer:"")));
+  if(p.purpose)children.push(labelValue(d.docPurpose,p.purpose));
+  if(p.description)children.push(labelValue(d.docDescription,p.description));
+  if(p.supplier)children.push(labelValue(d.docSupplier,p.supplier));
+
+  children.push(heading(d.regDefinitions,X.HeadingLevel.HEADING_2));
+  children.push(labelValue(d.defUtility,d.defUtilityText));
+  children.push(labelValue(d.defConsumer,d.defConsumerText));
+  children.push(labelValue(d.defDisciplineOwner,d.defDisciplineOwnerText));
+
+  if(p.sysCapacity||p.sysMaxLoad||p.sysChar){
+    children.push(heading(d.systemLevel,X.HeadingLevel.HEADING_2));
+    if(p.sysCapacity)children.push(labelValue(d.sysCapacity,p.sysCapacity));
+    if(p.sysMaxLoad)children.push(labelValue(d.sysMaxLoad,p.sysMaxLoad));
+    if(p.sysChar)children.push(labelValue(d.sysChar,p.sysChar));
+  }
+
+  if((p.structureTree||[]).length){
+    children.push(heading(d.regProductStructure,X.HeadingLevel.HEADING_2));
+    (function walk(parentId,depth){
+      nodeChildren(p.structureTree,parentId).forEach(function(node){
+        children.push(para([txt(node.name,{bold:true})],{indent:{left:depth*300}}));
+        var seenT={};
+        p.tagLinks.filter(function(tl){return tl.structureNodeId===node.id;}).forEach(function(tl){
+          var tag=findTag(tl.tagId);if(!tag||seenT[tag.id])return;seenT[tag.id]=true;
+          children.push(para("• "+tag.tagNo+" ("+(tag.component||tag.name)+")",{indent:{left:depth*300+300}}));
+        });
+        var sub=nodeSubtotal(p,node.id);
+        var subParts=[];
+        if(sub.elecAC)subParts.push("AC: "+fmtNum(sub.elecAC)+" kVA");
+        if(sub.elecDC)subParts.push("DC: "+fmtNum(sub.elecDC)+" kW");
+        if(sub.hyd)subParts.push("Hyd: "+fmtNum(sub.hyd)+" "+sub.hydUnit);
+        if(subParts.length)children.push(para("Σ "+subParts.join(" · "),{indent:{left:depth*300+300}}));
+        walk(node.id,depth+1);
+      });
+    })(null,0);
+  }
+
+  if(p.tagLinks.length>0){
+    var seenTags={};var crRows=[];
+    p.tagLinks.forEach(function(tl){var tag=findTag(tl.tagId);if(tag&&!seenTags[tag.id]){seenTags[tag.id]=true;crRows.push(tag);}});
+    children.push(heading(d.regConsumerRegister,X.HeadingLevel.HEADING_2));
+    children.push(dataTable([d.colTag,d.tagName,d.crAssembly,d.crComponent,d.crDiscipline,d.crOperatingMode,d.crLocation,d.crDataOwner],
+      crRows.map(function(tag){return [tag.tagNo,tag.name,tag.assembly,tag.component,tag.discipline,tag.operatingMode,tag.location,tag.dataOwner];})));
+
+    children.push(heading(d.regRequiredConsumption,X.HeadingLevel.HEADING_2));
+    var consRows=[];
+    p.tagLinks.forEach(function(tl){
+      var tag=findTag(tl.tagId);if(!tag)return;
+      var line=findLine(tag,tl.lineId);if(!line)return;
+      var eff=effLine(line,tl);var cd=consumptionDisplay(line,eff);
+      var qualityCell=line.quality||"";if(cd.detail)qualityCell=qualityCell?qualityCell+" · "+cd.detail:cd.detail;
+      consRows.push([tag.tagNo,typeLabel(line.type),contIntLabel(line.contInt),cd.text,modeLabel(eff.mode),qualityCell,line.notes]);
+    });
+    children.push(dataTable([d.colTag,d.colType,d.colContInt,d.colConsumption,d.colMode,d.colQuality,d.colNotes],consRows));
+  }
+
+  if(p.utilityRegister&&p.utilityRegister.length>0){
+    children.push(heading(d.regCapacitySummary,X.HeadingLevel.HEADING_2));
+    var utilLbl2={elecDC:d.utilElecDC,elecAC:d.utilElecAC,hydOil:d.utilHydOil,coolWater:d.utilCoolWater,instrAir:d.utilInstrAir,nitrogen:d.utilNitrogen,other:d.utilOther};
+    var capRows=p.utilityRegister.map(function(u){
+      var demand=capacityDemand(p,u);
+      var avail=parseFloat(u.availCap);
+      var demandTxt=demand?fmtNum(demand.total)+" "+demand.unit:d.capNoData;
+      var marginTxt="";if(demand&&!isNaN(avail))marginTxt=fmtNum(avail-demand.total)+" "+(u.capacityUnit||demand.unit);
+      return [u.utilId,utilLbl2[u.utilName]||u.utilName,(u.availCap||"")+" "+(u.capacityUnit||""),demandTxt,marginTxt,u.remarks];
+    });
+    children.push(dataTable([d.utilId,d.utilName,d.capAvailable,d.capDemand,d.capMargin,d.regNotes],capRows));
+  }
+
+  if(p.loadCases&&p.loadCases.length>0){
+    children.push(heading(d.regLoadCases,X.HeadingLevel.HEADING_2));
+    var lcRows=p.loadCases.map(function(lc){
+      var demand=loadCaseDemand(p,lc);
+      var modeNames=lcModeNames(lc);
+      return [lc.caseId,lc.name,modeNames,demand.elecAC?fmtNum(demand.elecAC)+" kVA":"—",demand.elecDC?fmtNum(demand.elecDC)+" kW":"—",demand.hyd?fmtNum(demand.hyd)+" "+demand.hydUnit:"—",lc.basis];
+    });
+    children.push(dataTable([d.lcCaseId,d.lcName,d.lcModesIncluded,d.lcSumAC,d.lcSumDC,d.lcSumHyd,d.lcBasis],lcRows));
+  }
+
+  ["operatingModes","products","utilityRegister","utilityRequirements","assumptions","openItems","references","revisions","dataQuality"].forEach(function(key){
+    var cfg=regCfg(key);
+    var rows=p[key]||[];
+    if(rows.length===0)return;
+    children.push(heading(cfg.title,X.HeadingLevel.HEADING_2));
+    var headers=cfg.fields.map(function(f){return f.label;});
+    var dataRows=rows.map(function(row){return cfg.fields.map(function(f){var v=row[f.k]||"";return f.type==="select"?f.optLabel(v):v;});});
+    children.push(dataTable(headers,dataRows));
+  });
+
+  children.push(heading(d.regTraceability,X.HeadingLevel.HEADING_2));
+  children.push(para(d.traceText));
+  children.push(para(d.generatedBy+" · "+new Date().toLocaleDateString(state.lang==="no"?"nb-NO":"en-GB"),{spacing:{before:200}}));
+
+  return new X.Document({sections:[{properties:{},children:children}]});
+}
+
+function buildPrintableHtml(p){
+  var d=t();
+  var body=docBodyHtml(p,d);
+  var css="body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;color:#1B2733;background:#ffffff;padding:0;margin:0;font-size:11px;}"+
+    "@page{size:A4 portrait;margin:16mm;}"+
+    "html{background:#ffffff;color-scheme:light;}"+
+    ".dochead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;border-bottom:2px solid #1B2733;padding-bottom:10px;margin-bottom:14px;}"+
+    ".dochead-company{font-weight:700;font-size:14px;}"+
+    "table.docmeta{border-collapse:collapse;font-size:10px;}"+
+    "table.docmeta td{border:1px solid #D8DEE2;padding:3px 8px;}"+
+    "table.docmeta td.k{color:#5C6B77;font-weight:700;background:#EEF1F2;}"+
+    ".doctitle{font-size:16px;font-weight:700;margin:0 0 2px;}"+
+    ".docsub{color:#5C6B77;font-size:11px;margin-bottom:10px;}"+
+    "table.doc{border-collapse:collapse;width:100%;font-size:9.5px;}"+
+    "table.doc th,table.doc td{border:1px solid #D8DEE2;padding:5px 6px;text-align:left;word-wrap:break-word;vertical-align:top;}"+
+    "table.doc th{background:#EEF1F2;font-weight:700;}"+
+    ".muted{color:#5C6B77;font-size:10.5px;}"+
+    ".docfoot{margin-top:14px;padding-top:8px;border-top:1px solid #D8DEE2;color:#5C6B77;font-size:9.5px;}";
+  return "<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='color-scheme' content='light'><title>"+esc(d.genTitle)+" – "+esc(p.name)+"</title><style>"+css+"</style></head><body>"+body+"</body></html>";
+}
+
+function renderDocument(){
+  var d=t();
+  var html='<div class="card"><label>'+d.selectProject+'</label><select id="docProject">';
+  html+='<option value="">--</option>';
+  state.projects.forEach(function(pr){html+='<option value="'+pr.id+'"'+(pr.id===state.docProjectId?" selected":"")+'>'+esc(pr.name)+'</option>';});
+  html+='</select></div>';
+
+  var p=state.docProjectId?findProject(state.docProjectId):null;
+  if(!p){
+    html+='<div class="card empty">'+d.noProjectSelected+'</div>';
+    document.getElementById("tab-document").innerHTML=html;
+    bindDocumentEvents();
+    return;
+  }
+
+  html+='<div class="card"><div class="muted" style="font-weight:600;margin-bottom:8px">'+d.docInfoTitle+'</div>'+
+    '<label>'+d.docLogo+'</label>'+
+    (p.logoDataUrl?'<div style="margin-bottom:8px"><img src="'+p.logoDataUrl+'" style="max-height:44px;max-width:160px;display:block;margin-bottom:6px"><button class="ghost" id="removeLogo">'+d.docLogoRemove+'</button></div>':'')+
+    '<div class="dropzone" id="logoDropzone">'+d.docLogoDrop+'<input type="file" id="fd_logo" accept="image/*"></div>'+
+    '<div class="grid2"><div><label>'+d.companyName+'</label><input id="fd_company" value="'+esc(p.companyName||"")+'"></div>'+
+    '<div><label>'+d.docSupplier+'</label><input id="fd_supplier" value="'+esc(p.supplier||"")+'"></div></div>'+
+    '<label>'+d.docPurpose+'</label><textarea id="fd_purpose" rows="2">'+esc(p.purpose||"")+'</textarea>'+
+    '<label>'+d.docDescription+'</label><textarea id="fd_description" rows="2">'+esc(p.description||"")+'</textarea>'+
+    '<div class="grid2"><div><label>'+d.docNo+'</label><input id="fd_docNo" value="'+esc(p.docNo||"")+'"></div>'+
+    '<div><label>'+d.revision+'</label><input id="fd_rev" value="'+esc(p.revision||"")+'"></div></div>'+
+    '<div class="grid2"><div><label>'+d.docDate+'</label><input type="date" id="fd_date" value="'+esc(p.docDate||"")+'"></div>'+
+    '<div><label>'+d.preparedBy+'</label><input id="fd_prep" value="'+esc(p.preparedBy||"")+'"></div></div>'+
+    '<div class="flexend"><button class="secondary" id="saveDocInfo">'+d.save+'</button></div></div>';
+
+  html+='<div class="card">'+renderLoadCasesCard(p)+'</div>';
+  html+='<div class="card">'+renderStructureTreeCard(p)+'</div>';
+
+  html+='<div class="card"><div class="muted" style="font-weight:600;margin-bottom:8px">'+d.regTitle+'</div>'+
+    renderRegisterCard(p,"operatingModes")+'<div style="border-top:1px solid var(--line);margin:10px 0"></div>'+
+    renderRegisterCard(p,"products")+'<div style="border-top:1px solid var(--line);margin:10px 0"></div>'+
+    renderRegisterCard(p,"utilityRegister")+'<div style="border-top:1px solid var(--line);margin:10px 0"></div>'+
+    renderRegisterCard(p,"utilityRequirements")+'<div style="border-top:1px solid var(--line);margin:10px 0"></div>'+
+    renderRegisterCard(p,"assumptions")+'<div style="border-top:1px solid var(--line);margin:10px 0"></div>'+
+    renderRegisterCard(p,"openItems")+'<div style="border-top:1px solid var(--line);margin:10px 0"></div>'+
+    renderRegisterCard(p,"references")+'<div style="border-top:1px solid var(--line);margin:10px 0"></div>'+
+    renderRegisterCard(p,"revisions")+'<div style="border-top:1px solid var(--line);margin:10px 0"></div>'+
+    renderRegisterCard(p,"dataQuality")+'</div>';
+
+  html+='<div class="card"><div id="docPreviewArea" style="overflow-x:auto;-webkit-overflow-scrolling:touch">'+docBodyHtml(p,d)+'</div></div>';
+
+  html+='<div class="flexend"><button class="secondary" id="btnExportExcel">'+d.exportExcel+'</button><button class="secondary" id="btnExportWord">'+d.exportWord+'</button><button class="primary" id="btnExportPdf">'+d.exportPdf+'</button></div>';
+
+  document.getElementById("tab-document").innerHTML=html;
+  bindDocumentEvents();
+}
+
+function bindDocumentEvents(){
+  var sel=document.getElementById("docProject");
+  if(sel)sel.onchange=function(){state.docProjectId=sel.value||null;renderDocument();};
+
+  var saveInfoBtn=document.getElementById("saveDocInfo");
+  if(saveInfoBtn)saveInfoBtn.onclick=function(){
+    var p=findProject(state.docProjectId);
+    p.companyName=val("fd_company");p.docNo=val("fd_docNo");p.revision=val("fd_rev");p.docDate=val("fd_date");p.preparedBy=val("fd_prep");
+    p.supplier=val("fd_supplier");p.purpose=val("fd_purpose");p.description=val("fd_description");
+    renderDocument();
+  };
+
+  function handleLogoFile(p,file){
+    if(!file||file.type.indexOf("image/")!==0)return;
+    var reader=new FileReader();
+    reader.onload=function(e){p.logoDataUrl=e.target.result;renderDocument();};
+    reader.readAsDataURL(file);
+  }
+
+  var logoInput=document.getElementById("fd_logo");
+  if(logoInput)logoInput.onchange=function(){
+    var p=findProject(state.docProjectId);
+    if(logoInput.files&&logoInput.files[0])handleLogoFile(p,logoInput.files[0]);
+  };
+  var removeLogoBtn=document.getElementById("removeLogo");
+  if(removeLogoBtn)removeLogoBtn.onclick=function(){
+    var p=findProject(state.docProjectId);
+    p.logoDataUrl="";renderDocument();
+  };
+  var dropzone=document.getElementById("logoDropzone");
+  if(dropzone){
+    dropzone.onclick=function(e){if(e.target!==logoInput)logoInput.click();};
+    dropzone.ondragover=function(e){e.preventDefault();dropzone.classList.add("dragover");};
+    dropzone.ondragleave=function(){dropzone.classList.remove("dragover");};
+    dropzone.ondrop=function(e){
+      e.preventDefault();dropzone.classList.remove("dragover");
+      var p=findProject(state.docProjectId);
+      if(e.dataTransfer.files&&e.dataTransfer.files[0])handleLogoFile(p,e.dataTransfer.files[0]);
+    };
+  }
+
+  bindRegisterEvents(renderDocument);
+  bindLoadCaseEvents(renderDocument);
+  bindStructureEvents(renderDocument);
+  var pForDrag=findProject(state.docProjectId);
+  if(pForDrag)bindStructureDragEvents(pForDrag,renderDocument);
+
+  var pdfBtn=document.getElementById("btnExportPdf");
+  if(pdfBtn)pdfBtn.onclick=function(){
+    var p=findProject(state.docProjectId);
+    if(!p)return;
+    var w=window.open("","_blank");
+    w.document.write(buildPrintableHtml(p));
+    w.document.close();
+    w.focus();
+    setTimeout(function(){w.print();},300);
+  };
+
+  var wordBtn=document.getElementById("btnExportWord");
+  if(wordBtn)wordBtn.onclick=function(){
+    var p=findProject(state.docProjectId);
+    if(!p)return;
+    var d=t();
+    function fallbackDoc(){
+      var html=buildPrintableHtml(p).replace("<html>","<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>");
+      var blob=new Blob(['\ufeff',html],{type:"application/msword"});
+      var a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download="utility-consumption-data.doc";
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+    }
+    if(!window.docx||!window.docx.Document){
+      alert(state.lang==="no"?"Kunne ikke laste docx-biblioteket (ingen nett?) — laster ned HTML-basert .doc i stedet.":"Could not load the docx library (no internet?) — downloading HTML-based .doc instead.");
+      fallbackDoc();return;
+    }
+    try{
+      var doc=buildDocxDoc(p,d);
+      window.docx.Packer.toBlob(doc).then(function(blob){
+        var a=document.createElement("a");
+        a.href=URL.createObjectURL(blob);
+        a.download="utility-consumption-data.docx";
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+      }).catch(function(err){
+        console.error(err);
+        alert(state.lang==="no"?"Feil under generering av .docx — laster ned HTML-basert .doc i stedet.":"Error generating .docx — downloading HTML-based .doc instead.");
+        fallbackDoc();
+      });
+    }catch(err){
+      console.error(err);
+      fallbackDoc();
+    }
+  };
+
+  var xlsBtn=document.getElementById("btnExportExcel");
+  if(xlsBtn)xlsBtn.onclick=function(){
+    var d=t();
+    var p=findProject(state.docProjectId);
+    if(!p)return;
+    var wb=XLSX.utils.book_new();
+    function addSheet(name,rows){
+      var ws=XLSX.utils.aoa_to_sheet(rows);
+      XLSX.utils.book_append_sheet(wb,ws,name.substring(0,31));
+    }
+
+    addSheet("Dokumentinfo",[
+      [d.companyName,p.companyName||""],
+      [d.docNo,p.docNo||""],[d.revision,p.revision||""],[d.docDate,p.docDate||""],[d.preparedBy,p.preparedBy||""],
+      [d.docSupplier,p.supplier||""],[d.docPurpose,p.purpose||""],[d.docDescription,p.description||""],
+      [d.sysCapacity,p.sysCapacity||""],[d.sysMaxLoad,p.sysMaxLoad||""],[d.sysChar,p.sysChar||""]
+    ]);
+
+    if((p.structureTree||[]).length){
+      var psRows=[[d.structNodeName,"Level","Tags"]];
+      (function walk(parentId,depth){
+        nodeChildren(p.structureTree,parentId).forEach(function(node){
+          var tagNames=[];var seenT={};
+          p.tagLinks.filter(function(tl){return tl.structureNodeId===node.id;}).forEach(function(tl){
+            var tag=findTag(tl.tagId);if(tag&&!seenT[tag.id]){seenT[tag.id]=true;tagNames.push(tag.tagNo);}
+          });
+          psRows.push([new Array(depth+1).join("  ")+node.name,depth,tagNames.join(", ")]);
+          walk(node.id,depth+1);
+        });
+      })(null,0);
+      addSheet(d.regProductStructure,psRows);
+    }
+
+    var seenCR={};var crRows=[[d.colTag,d.tagName,d.crAssembly,d.crComponent,d.crDiscipline,d.crOperatingMode,d.crLocation,d.crDataOwner]];
+    p.tagLinks.forEach(function(tl){var tag=findTag(tl.tagId);if(tag&&!seenCR[tag.id]){seenCR[tag.id]=true;crRows.push([tag.tagNo,tag.name,tag.assembly,tag.component,tag.discipline,tag.operatingMode,tag.location,tag.dataOwner]);}});
+    if(crRows.length>1)addSheet(d.regConsumerRegister,crRows);
+
+    var consRows=[[d.colTag,d.colType,d.colContInt,d.colMin,d.colNormal,d.colMax,d.colUnit,d.colMode,
+      d.acdc,d.phases,d.voltage,"S min","S normal","S maks","S enhet","P min","P normal","P maks","Formel",d.colQuality,d.colNotes]];
+    p.tagLinks.forEach(function(tl){
+      var tag=findTag(tl.tagId);if(!tag)return;
+      var line=findLine(tag,tl.lineId);if(!line)return;
+      var eff=effLine(line,tl);
+      var calc=calcPower(line,eff);
+      consRows.push([tag.tagNo,typeLabel(line.type),contIntLabel(line.contInt),eff.min,eff.normal,eff.max,eff.unit,modeLabel(eff.mode),
+        line.type==="elec"?(line.acdc||""):"",line.type==="elec"&&line.acdc!=="dc"?(line.phases||""):"",line.type==="elec"?(line.voltage||""):"",
+        calc?fmtNum(calc.s.min):"",calc?fmtNum(calc.s.normal):"",calc?fmtNum(calc.s.max):"",calc?(calc.dc?"kW":"kVA"):"",
+        calc&&calc.p?fmtNum(calc.p.min):"",calc&&calc.p?fmtNum(calc.p.normal):"",calc&&calc.p?fmtNum(calc.p.max):"",
+        calc?calc.formula:"",line.quality,line.notes]);
+    });
+    addSheet(d.regRequiredConsumption,consRows);
+
+    if(p.utilityRegister&&p.utilityRegister.length>0){
+      var utilLbl2={elecDC:d.utilElecDC,elecAC:d.utilElecAC,hydOil:d.utilHydOil,coolWater:d.utilCoolWater,instrAir:d.utilInstrAir,nitrogen:d.utilNitrogen,other:d.utilOther};
+      var capRows=[[d.utilId,d.utilName,d.capAvailable,d.capDemand,d.capMargin,d.regNotes]];
+      p.utilityRegister.forEach(function(u){
+        var demand=capacityDemand(p,u);
+        var avail=parseFloat(u.availCap);
+        var demandTxt=demand?fmtNum(demand.total)+" "+demand.unit:d.capNoData;
+        var marginTxt="";if(demand&&!isNaN(avail))marginTxt=fmtNum(avail-demand.total)+" "+(u.capacityUnit||demand.unit);
+        capRows.push([u.utilId,utilLbl2[u.utilName]||u.utilName,(u.availCap||"")+" "+(u.capacityUnit||""),demandTxt,marginTxt,u.remarks]);
+      });
+      addSheet(d.regCapacitySummary,capRows);
+    }
+
+    if(p.loadCases&&p.loadCases.length>0){
+      var lcRows=[[d.lcCaseId,d.lcName,d.regDescription,d.lcModesIncluded,d.lcSumAC,d.lcSumDC,d.lcSumHyd,d.lcBasis]];
+      p.loadCases.forEach(function(lc){
+        var demand=loadCaseDemand(p,lc);
+        var modeNames=lcModeNames(lc);
+        lcRows.push([lc.caseId,lc.name,lc.description,modeNames,demand.elecAC?fmtNum(demand.elecAC)+" kVA":"",demand.elecDC?fmtNum(demand.elecDC)+" kW":"",demand.hyd?fmtNum(demand.hyd)+" "+demand.hydUnit:"",lc.basis]);
+      });
+      addSheet(d.regLoadCases,lcRows);
+    }
+
+    ["operatingModes","products","utilityRegister","utilityRequirements","assumptions","openItems","references","revisions","dataQuality"].forEach(function(key){
+      var cfg=regCfg(key);
+      var rows=p[key]||[];
+      if(rows.length===0)return;
+      var headers=cfg.fields.map(function(f){return f.label;});
+      var dataRows=rows.map(function(row){return cfg.fields.map(function(f){var v=row[f.k]||"";return f.type==="select"?f.optLabel(v):v;});});
+      addSheet(cfg.title,[headers].concat(dataRows));
+    });
+
+    XLSX.writeFile(wb,"utility-consumption-data.xlsx");
+  };
+}
+
+/* ---------- SHELL ---------- */
+
+function renderShell(){
+  var d=t();
+  document.getElementById("taglineText").textContent=" — "+d.tagline;
+  document.getElementById("tabBtnLibrary").textContent=d.tabLibrary;
+  document.getElementById("tabBtnProjects").textContent=d.tabProjects;
+  document.getElementById("tabBtnDocument").textContent=d.tabDocument;
+  document.getElementById("langToggle").textContent=state.lang==="no"?"EN":"NO";
+  document.getElementById("btnSaveData").textContent=d.btnSaveData;
+  document.getElementById("btnOpenData").textContent=d.btnOpenData;
+}
+
+function renderActiveTab(){
+  document.querySelectorAll(".panel").forEach(function(p){p.classList.remove("active");});
+  document.querySelectorAll("nav.tabs button").forEach(function(b){b.classList.remove("active");});
+  document.getElementById("tab-"+state.tab).classList.add("active");
+  document.querySelector('[data-tab="'+state.tab+'"]').classList.add("active");
+  if(state.tab==="library")renderLibrary();
+  if(state.tab==="projects")renderProjects();
+  if(state.tab==="document")renderDocument();
+}
+
+document.querySelectorAll("nav.tabs button").forEach(function(b){
+  b.onclick=function(){state.tab=b.getAttribute("data-tab");renderActiveTab();};
+});
+document.getElementById("langToggle").onclick=function(){
+  state.lang=state.lang==="no"?"en":"no";
+  renderShell();renderActiveTab();
+};
+
+function exportProjectData(){
+  var payload={version:1,exportedAt:new Date().toISOString(),tags:state.tags,projects:state.projects};
+  var blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  var d=new Date();
+  var stamp=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  a.download="ucd-pilot-data-"+stamp+".json";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+function importProjectDataFile(file){
+  var d=t();
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var payload=JSON.parse(e.target.result);
+      if(!payload||!Array.isArray(payload.tags)||!Array.isArray(payload.projects))throw new Error("bad shape");
+      state.tags=payload.tags;
+      state.projects=payload.projects;
+      state.editingTagId=null;state.addingLineForTag=null;state.editingLineFor=null;
+      state.expandedProject=null;state.registerAdding=null;state.lcAdding=null;
+      state.docProjectId=state.projects.length?state.projects[0].id:null;
+      renderShell();renderActiveTab();
+      alert(d.openDataSuccess);
+    }catch(err){
+      alert(d.openDataError);
+    }
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById("btnSaveData").onclick=function(){exportProjectData();};
+document.getElementById("btnOpenData").onclick=function(){
+  if(!confirm(t().confirmOpenData))return;
+  document.getElementById("fileOpenData").click();
+};
+document.getElementById("fileOpenData").onchange=function(e){
+  if(e.target.files&&e.target.files[0])importProjectDataFile(e.target.files[0]);
+  e.target.value="";
+};
+
+/* ---------- FIREBASE (fill in your config below) ---------- */
+
+var FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBuTnGFoJVM3zwh75YAdR--dltNkgc24R0",
+  authDomain: "utility-hub-4064c.firebaseapp.com",
+  projectId: "utility-hub-4064c",
+  storageBucket: "utility-hub-4064c.firebasestorage.app",
+  messagingSenderId: "719920564684",
+  appId: "1:719920564684:web:0bdfff9895d055784c7569"
+};
+var firebaseEnabled = FIREBASE_CONFIG.apiKey.indexOf("YOUR_")!==0;
+var fbAuth=null, fbDb=null, fbUser=null;
+
+function cloudDocRef(){
+  return fbDb.collection("users").doc(fbUser.uid).collection("app").doc("data");
+}
+
+function showApp(){
+  document.getElementById("loginGate").style.display="none";
+  document.getElementById("appRoot").style.display="block";
+}
+function showLogin(){
+  var d=t();
+  document.getElementById("loginSubtitle").textContent=d.loginSubtitle;
+  document.getElementById("loginEmailLabel").textContent=d.loginEmail;
+  document.getElementById("loginPasswordLabel").textContent=d.loginPassword;
+  document.getElementById("loginBtn").textContent=d.loginBtn;
+  document.getElementById("loginError").textContent="";
+  document.getElementById("appRoot").style.display="none";
+  document.getElementById("loginGate").style.display="flex";
+}
+
+function cloudSave(){
+  if(!firebaseEnabled||!fbUser)return;
+  if(!confirm(t().cloudSaveConfirm))return;
+  cloudDocRef().set({tags:state.tags,projects:state.projects,updatedAt:new Date().toISOString()})
+    .then(function(){alert(t().cloudSaveDone);})
+    .catch(function(err){console.error(err);alert(t().cloudError);});
+}
+function cloudLoad(){
+  if(!firebaseEnabled||!fbUser)return;
+  if(!confirm(t().cloudLoadConfirm))return;
+  cloudDocRef().get().then(function(doc){
+    if(!doc.exists){alert(t().cloudNoData);return;}
+    var data=doc.data();
+    if(!data||!Array.isArray(data.tags)||!Array.isArray(data.projects)){alert(t().cloudError);return;}
+    state.tags=data.tags;state.projects=data.projects;
+    state.editingTagId=null;state.addingLineForTag=null;state.editingLineFor=null;
+    state.expandedProject=null;state.registerAdding=null;state.lcAdding=null;
+    state.docProjectId=state.projects.length?state.projects[0].id:null;
+    renderShell();renderActiveTab();
+    alert(t().cloudLoadDone);
+  }).catch(function(err){console.error(err);alert(t().cloudError);});
+}
+
+if(firebaseEnabled){
+  firebase.initializeApp(FIREBASE_CONFIG);
+  fbAuth=firebase.auth();
+  fbDb=firebase.firestore();
+
+  document.getElementById("btnCloudSave").style.display="inline-block";
+  document.getElementById("btnCloudLoad").style.display="inline-block";
+  document.getElementById("btnLogout").style.display="inline-block";
+  document.getElementById("btnCloudSave").onclick=cloudSave;
+  document.getElementById("btnCloudLoad").onclick=cloudLoad;
+  document.getElementById("btnLogout").onclick=function(){fbAuth.signOut();};
+
+  document.getElementById("loginBtn").onclick=function(){
+    var email=document.getElementById("loginEmail").value.trim();
+    var pw=document.getElementById("loginPassword").value;
+    document.getElementById("loginError").textContent="";
+    fbAuth.signInWithEmailAndPassword(email,pw).catch(function(err){
+      console.error(err);
+      document.getElementById("loginError").textContent=t().loginErrorGeneric;
+    });
+  };
+
+  fbAuth.onAuthStateChanged(function(user){
+    if(user){
+      fbUser=user;
+      showApp();
+      cloudDocRef().get().then(function(doc){
+        if(doc.exists){
+          var data=doc.data();
+          if(data&&Array.isArray(data.tags)&&Array.isArray(data.projects)){
+            state.tags=data.tags;state.projects=data.projects;
+            state.docProjectId=state.projects.length?state.projects[0].id:null;
+          }
+        }
+        renderShell();renderActiveTab();
+      }).catch(function(err){
+        console.error(err);
+        renderShell();renderActiveTab();
+      });
+    } else {
+      fbUser=null;
+      showLogin();
+    }
+  });
+} else {
+  document.getElementById("appRoot").style.display="block";
+}
+
+renderShell();
+renderActiveTab();
+
+})();
+</script>
+</body>
+</html>
